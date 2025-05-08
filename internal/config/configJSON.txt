@@ -1,1 +1,1 @@
-{"host_address": "localhost:8080", "secret_key": "13d6b4dff8f84a10851021ec8608f814570d562c92fe6b5ec4c9f595bcb3234b", "database_dsn": "host=localhost user=admin password=admin dbname=test sslmode=disable", "token_duration": 10}
+{"host_address": "localhost:5000", "secret_key": "13d6b4dff8f84a10851021ec8608f814570d562c92fe6b5ec4c9f595bcb3234b", "database_dsn": "host=localhost user=admin password=admin dbname=test sslmode=disable", "token_duration": 10}

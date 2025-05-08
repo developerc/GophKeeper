@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package server;
+
+option go_package = "github.com/developerc/GophKeeper/proto";
+
+message ErrorResponse {
+  string Error = 1;
+}
+
+message UserRegisterRequest {
+  string Login = 1;
+  string Password = 2;
+}
+
+message UserAuthorizedRequest {
+  string Login = 1;
+  string Password = 2;
+}
+
+message AuthorizedResponse {
+  string Token = 1;
+}
+
+message SaveRawDataRequest {
+  string Name = 1;
+  string Data = 2;
+}
+
+message SaveLoginWithPasswordRequest {
+  string Name = 1;
+  string Login = 2;
+  string Password = 3;
+}
+
+message SaveBinaryDataRequest {
+  string Name = 1;
+  bytes Data = 2;
+}
+
+message SaveCardDataRequest {
+  string Name = 1;
+  string Number = 2;
+  string Month = 3;
+  string Year = 4;
+  string CardHolder = 5;
+}
+
+message GetRawDataRequest {
+  string Name = 1;
+}
+
+message GetRawDataResponse {
+  string Data = 1;
+}
+
+message GetLoginWithPasswordRequest {
+  string Name = 1;
+}
+
+message GetLoginWithPasswordResponse {
+  string Login = 1;
+  string Password = 2;
+}
+
+message GetBinaryDataRequest {
+  string Name = 1;
+}
+
+message GetBinaryDataResponse {
+  bytes Data = 1;
+}
+
+message GetCardDataRequest {
+  string Name = 1;
+}
+
+message GetCardDataResponse {
+  string Number = 1;
+  string Month = 2;
+  string Year = 3;
+  string CardHolder = 4;
+}
+
+message GetAllSavedDataNamesRequest {
+}
+
+message GetAllSavedDataNamesResponse {
+  repeated string saved_data_names = 1;
+}
+
+service GrpcService {
+  rpc CreateUser(UserRegisterRequest) returns (AuthorizedResponse);
+  rpc LoginUser(UserAuthorizedRequest) returns (AuthorizedResponse);
+
+  rpc SaveRawData(SaveRawDataRequest) returns (ErrorResponse);
+  rpc SaveLoginWithPassword(SaveLoginWithPasswordRequest) returns (ErrorResponse);
+  rpc SaveBinaryData(SaveBinaryDataRequest) returns (ErrorResponse);
+  rpc SaveCardData(SaveCardDataRequest) returns (ErrorResponse);
+
+  rpc GetRawData(GetRawDataRequest) returns (GetRawDataResponse);
+  rpc GetLoginWithPassword(GetLoginWithPasswordRequest) returns (GetLoginWithPasswordResponse);
+  rpc GetBinaryData(GetBinaryDataRequest) returns (GetBinaryDataResponse);
+  rpc GetCardData(GetCardDataRequest) returns (GetCardDataResponse);
+
+  rpc GetAllSavedDataNames(GetAllSavedDataNamesRequest) returns (GetAllSavedDataNamesResponse);
+}
