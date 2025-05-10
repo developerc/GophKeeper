@@ -2,37 +2,98 @@ package grpcserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
 	"github.com/developerc/GophKeeper/internal/config"
+	"github.com/developerc/GophKeeper/internal/entity/myerrors"
+	"github.com/developerc/GophKeeper/internal/security"
+	"github.com/developerc/GophKeeper/internal/service/dataservice"
+	"github.com/developerc/GophKeeper/internal/service/userservice"
 	pb "github.com/developerc/GophKeeper/proto"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Server структура сервера gRPC
 type Server struct {
 	pb.GrpcServiceServer
-	//Service svc
+	userService    userservice.UserService
+	jwtManager     *security.JWTManager
+	storageService dataservice.StorageService
 }
 
 // NewServer конструктор сервера gRPC
-func NewServer() *Server {
-	return &Server{}
+func NewServer(userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService) *Server {
+	return &Server{userService: userService, jwtManager: jwtManager, storageService: storageService}
 }
 
 func (s *Server) CreateUser(ctx context.Context, in *pb.UserRegisterRequest) (*pb.AuthorizedResponse, error) {
 	fmt.Println(in.Login, in.Password)
-	return &pb.AuthorizedResponse{Token: "token"}, nil
+	login := in.Login
+	password := in.Password
+	userID := uuid.New().String()
+
+	err := s.userService.Create(ctx, login, password, userID)
+	if err != nil {
+		var uv *myerrors.UserViolationError
+		if errors.As(err, &uv) {
+			return nil, status.Errorf(codes.Unauthenticated, uv.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	token, err := s.jwtManager.GenerateJWT(userID, login)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.AuthorizedResponse{Token: token}, nil
 }
 
 func (s *Server) LoginUser(ctx context.Context, in *pb.UserAuthorizedRequest) (*pb.AuthorizedResponse, error) {
-	return nil, nil
+	login := in.Login
+	password := in.Password
+
+	userID, err := s.userService.Login(ctx, login, password)
+	if err != nil {
+		var ip *myerrors.InvalidPasswordError
+		if errors.As(err, &ip) {
+			return nil, status.Errorf(codes.Unauthenticated, ip.Error())
+		}
+		return nil, status.Errorf(codes.Internal, "user with login %s not found", login)
+	}
+
+	token, err := s.jwtManager.GenerateJWT(userID, login)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.AuthorizedResponse{Token: token}, nil
 }
 
 func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*pb.ErrorResponse, error) {
-	return nil, nil
+	fmt.Println("from SaveRawData")
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+	fmt.Println(userID)
+
+	err = s.storageService.SaveRawData(ctx, in.Name, in.Data, userID)
+	if err != nil {
+		var dv *myerrors.DataViolationError
+		if errors.As(err, &dv) {
+			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
 func (s *Server) SaveLoginWithPassword(ctx context.Context, in *pb.SaveLoginWithPasswordRequest) (*pb.ErrorResponse, error) {
@@ -67,7 +128,7 @@ func (s *Server) GetAllSavedDataNames(ctx context.Context, in *pb.GetAllSavedDat
 	return nil, nil
 }
 
-func NewGRPCserver(ctx context.Context, settings *config.ServerSettings) {
+func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService) {
 	lis, err := net.Listen("tcp", settings.Host) // будем ждать запросы по этому адресу
 	if err != nil {
 		settings.Logger.Info("Init gRPC service", zap.String("error", err.Error()))
@@ -76,7 +137,15 @@ func NewGRPCserver(ctx context.Context, settings *config.ServerSettings) {
 	settings.Logger.Info("Init gRPC service", zap.String("start at host:port", settings.Host))
 
 	grpcServer := grpc.NewServer()
-	reductorServiceServer := NewServer()
+
+	go func() {
+		<-ctx.Done()
+		settings.Logger.Info("Server gRPC", zap.String("shutdown", "begin"))
+		grpcServer.GracefulStop()
+		settings.Logger.Info("Server gRPC", zap.String("shutdown", "end"))
+	}()
+
+	reductorServiceServer := NewServer(userService, jwtManager, storageService)
 
 	pb.RegisterGrpcServiceServer(grpcServer, reductorServiceServer)
 	if err := grpcServer.Serve(lis); err != nil {
