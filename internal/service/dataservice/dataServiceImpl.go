@@ -111,6 +111,7 @@ func (s storageServiceImpl) SaveCardData(ctx context.Context, name string, cardD
 	if err != nil {
 		return err
 	}
+	//fmt.Println(cardData)
 
 	return s.encryptAndSaveData(ctx, name, userID, marshalledCardData, entity.CARD)
 }
@@ -129,6 +130,7 @@ func (s storageServiceImpl) GetCardData(ctx context.Context, name, userID string
 	if err := json.Unmarshal(decryptData, &card); err != nil {
 		return entity.CardDataDTO{}, err
 	}
+	//fmt.Println(card)
 
 	return card, nil
 }

@@ -3,10 +3,10 @@ package grpcserver
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 
 	"github.com/developerc/GophKeeper/internal/config"
+	"github.com/developerc/GophKeeper/internal/entity"
 	"github.com/developerc/GophKeeper/internal/entity/myerrors"
 	"github.com/developerc/GophKeeper/internal/security"
 	"github.com/developerc/GophKeeper/internal/service/dataservice"
@@ -32,8 +32,9 @@ func NewServer(userService userservice.UserService, jwtManager *security.JWTMana
 	return &Server{userService: userService, jwtManager: jwtManager, storageService: storageService}
 }
 
+// CreateUser эндпойнт сохранения нового пользователя, генерит токен и отдает в теле респонса
 func (s *Server) CreateUser(ctx context.Context, in *pb.UserRegisterRequest) (*pb.AuthorizedResponse, error) {
-	fmt.Println(in.Login, in.Password)
+	//fmt.Println(in.Login, in.Password)
 	login := in.Login
 	password := in.Password
 	userID := uuid.New().String()
@@ -55,6 +56,7 @@ func (s *Server) CreateUser(ctx context.Context, in *pb.UserRegisterRequest) (*p
 	return &pb.AuthorizedResponse{Token: token}, nil
 }
 
+// LoginUser эндпойнт авторизации существующего пользователя, генерит токен и отдает в теле респонса
 func (s *Server) LoginUser(ctx context.Context, in *pb.UserAuthorizedRequest) (*pb.AuthorizedResponse, error) {
 	login := in.Login
 	password := in.Password
@@ -76,13 +78,14 @@ func (s *Server) LoginUser(ctx context.Context, in *pb.UserAuthorizedRequest) (*
 	return &pb.AuthorizedResponse{Token: token}, nil
 }
 
+// SaveRawData эндпойнт сохранения произвольной текстовой информации для авторизованного пользователя
 func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*pb.ErrorResponse, error) {
-	fmt.Println("from SaveRawData")
+	//fmt.Println("from SaveRawData")
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
-	fmt.Println(userID)
+	//fmt.Println(userID)
 
 	err = s.storageService.SaveRawData(ctx, in.Name, in.Data, userID)
 	if err != nil {
@@ -96,38 +99,163 @@ func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*p
 	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// SaveLoginWithPassword эндпойнт сохранения логина и пароля для авторизованного пользователя
 func (s *Server) SaveLoginWithPassword(ctx context.Context, in *pb.SaveLoginWithPasswordRequest) (*pb.ErrorResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	err = s.storageService.SaveLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID)
+	if err != nil {
+		var dv *myerrors.DataViolationError
+		if errors.As(err, &dv) {
+			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// SaveBinaryData эндпойнт сохранения произвольных бинарных данных для авторизованного пользователя
 func (s *Server) SaveBinaryData(ctx context.Context, in *pb.SaveBinaryDataRequest) (*pb.ErrorResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	err = s.storageService.SaveBinaryData(ctx, in.Name, in.Data, userID)
+	if err != nil {
+		var dv *myerrors.DataViolationError
+		if errors.As(err, &dv) {
+			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// SaveCardData эндпойнт сохранения данных банковской карты для авторизованного пользователя
 func (s *Server) SaveCardData(ctx context.Context, in *pb.SaveCardDataRequest) (*pb.ErrorResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	card := entity.CardDataDTO{
+		Number:     in.Number,
+		Month:      in.Month,
+		Year:       in.Year,
+		CardHolder: in.CardHolder,
+	}
+	//fmt.Println(card)
+
+	err = s.storageService.SaveCardData(ctx, in.Name, card, userID)
+	if err != nil {
+		var dv *myerrors.DataViolationError
+		if errors.As(err, &dv) {
+			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// GetRawData эндпойнт получения текстовой информации по названию для авторизованного пользователя
 func (s *Server) GetRawData(ctx context.Context, in *pb.GetRawDataRequest) (*pb.GetRawDataResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	data, err := s.storageService.GetRawData(ctx, in.Name, userID)
+	if err != nil {
+		var nf *myerrors.NotFoundError
+		if errors.As(err, &nf) {
+			return nil, status.Errorf(codes.NotFound, nf.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.GetRawDataResponse{Data: data}, nil
 }
 
+// GetLoginWithPassword эндпойнт получения логина и пароля по названию для авторизованного пользователя
 func (s *Server) GetLoginWithPassword(ctx context.Context, in *pb.GetLoginWithPasswordRequest) (*pb.GetLoginWithPasswordResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	data, err := s.storageService.GetLoginWithPassword(ctx, in.Name, userID)
+	if err != nil {
+		var nf *myerrors.NotFoundError
+		if errors.As(err, &nf) {
+			return nil, status.Errorf(codes.NotFound, nf.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.GetLoginWithPasswordResponse{Login: data.Login, Password: data.Password}, nil
 }
 
+// GetBinaryData эндпойнт получения произвольных бинарных данных по названию для авторизованного пользователя
 func (s *Server) GetBinaryData(ctx context.Context, in *pb.GetBinaryDataRequest) (*pb.GetBinaryDataResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	data, err := s.storageService.GetBinaryData(ctx, in.Name, userID)
+	if err != nil {
+		var nf *myerrors.NotFoundError
+		if errors.As(err, &nf) {
+			return nil, status.Errorf(codes.NotFound, nf.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.GetBinaryDataResponse{Data: data}, nil
 }
 
+// GetCardData эндпойнт получения данных банковской карты по названию для авторизованного пользователя
 func (s *Server) GetCardData(ctx context.Context, in *pb.GetCardDataRequest) (*pb.GetCardDataResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	data, err := s.storageService.GetCardData(ctx, in.Name, userID)
+	if err != nil {
+		var nf *myerrors.NotFoundError
+		if errors.As(err, &nf) {
+			return nil, status.Errorf(codes.NotFound, nf.Error())
+		}
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.GetCardDataResponse{Number: data.Number, Month: data.Month, Year: data.Year, CardHolder: data.CardHolder}, nil
 }
 
+// GetAllSavedDataNames метод для получения всех названий сохранений
 func (s *Server) GetAllSavedDataNames(ctx context.Context, in *pb.GetAllSavedDataNamesRequest) (*pb.GetAllSavedDataNamesResponse, error) {
-	return nil, nil
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+	}
+
+	names, err := s.storageService.GetAllSavedDataNames(ctx, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.GetAllSavedDataNamesResponse{SavedDataNames: names}, nil
 }
 
+// NewGRPCserver конструктор GRPC сервера
 func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService) {
 	lis, err := net.Listen("tcp", settings.Host) // будем ждать запросы по этому адресу
 	if err != nil {
