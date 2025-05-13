@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net"
 
@@ -256,7 +257,7 @@ func (s *Server) GetAllSavedDataNames(ctx context.Context, in *pb.GetAllSavedDat
 }
 
 // NewGRPCserver конструктор GRPC сервера
-func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService) {
+func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService, db *sql.DB) {
 	lis, err := net.Listen("tcp", settings.Host) // будем ждать запросы по этому адресу
 	if err != nil {
 		settings.Logger.Info("Init gRPC service", zap.String("error", err.Error()))
@@ -267,10 +268,13 @@ func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userSer
 	grpcServer := grpc.NewServer()
 
 	go func() {
+		defer close(beforeStop)
 		<-ctx.Done()
 		settings.Logger.Info("Server gRPC", zap.String("shutdown", "begin"))
 		grpcServer.GracefulStop()
 		settings.Logger.Info("Server gRPC", zap.String("shutdown", "end"))
+		db.Close()
+		settings.Logger.Info("DB", zap.String("close", "end"))
 	}()
 
 	reductorServiceServer := NewServer(userService, jwtManager, storageService)

@@ -15,8 +15,11 @@ import (
 	"github.com/developerc/GophKeeper/internal/service/userservice"
 )
 
+var beforeStop chan struct{}
+
 // Run метод запускает работу сервера и мягко останавливает.
 func Run() error {
+	beforeStop = make(chan struct{})
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
@@ -48,11 +51,8 @@ func Run() error {
 		return err
 	}
 	storageService := dataservice.New(rawDataRepository, cipherManager)
-	if err != nil {
-		return err
-	}
 
-	NewGRPCserver(ctx, settings, userService, jwtManager, storageService)
-
+	NewGRPCserver(ctx, settings, userService, jwtManager, storageService, db)
+	<-beforeStop
 	return nil
 }
