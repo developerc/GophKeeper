@@ -43,14 +43,14 @@ func (s *Server) CreateUser(ctx context.Context, in *pb.UserRegisterRequest) (*p
 	if err != nil {
 		var uv *myerrors.UserViolationError
 		if errors.As(err, &uv) {
-			return nil, status.Errorf(codes.Unauthenticated, uv.Error())
+			return nil, status.Errorf(codes.Unauthenticated, "%s", uv.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	token, err := s.jwtManager.GenerateJWT(userID, login)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.AuthorizedResponse{Token: token}, nil
@@ -65,14 +65,14 @@ func (s *Server) LoginUser(ctx context.Context, in *pb.UserAuthorizedRequest) (*
 	if err != nil {
 		var ip *myerrors.InvalidPasswordError
 		if errors.As(err, &ip) {
-			return nil, status.Errorf(codes.Unauthenticated, ip.Error())
+			return nil, status.Errorf(codes.Unauthenticated, "%s", ip.Error())
 		}
 		return nil, status.Errorf(codes.Internal, "user with login %s not found", login)
 	}
 
 	token, err := s.jwtManager.GenerateJWT(userID, login)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.AuthorizedResponse{Token: token}, nil
@@ -83,7 +83,7 @@ func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*p
 	//fmt.Println("from SaveRawData")
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 	//fmt.Println(userID)
 
@@ -91,9 +91,9 @@ func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*p
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
-			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+			return nil, status.Errorf(codes.AlreadyExists, "%s", dv.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.ErrorResponse{Error: "no errors"}, nil
@@ -103,16 +103,16 @@ func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*p
 func (s *Server) SaveLoginWithPassword(ctx context.Context, in *pb.SaveLoginWithPasswordRequest) (*pb.ErrorResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	err = s.storageService.SaveLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID)
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
-			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+			return nil, status.Errorf(codes.AlreadyExists, "%s", dv.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.ErrorResponse{Error: "no errors"}, nil
@@ -122,16 +122,16 @@ func (s *Server) SaveLoginWithPassword(ctx context.Context, in *pb.SaveLoginWith
 func (s *Server) SaveBinaryData(ctx context.Context, in *pb.SaveBinaryDataRequest) (*pb.ErrorResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	err = s.storageService.SaveBinaryData(ctx, in.Name, in.Data, userID)
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
-			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+			return nil, status.Errorf(codes.AlreadyExists, "%s", dv.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.ErrorResponse{Error: "no errors"}, nil
@@ -141,7 +141,7 @@ func (s *Server) SaveBinaryData(ctx context.Context, in *pb.SaveBinaryDataReques
 func (s *Server) SaveCardData(ctx context.Context, in *pb.SaveCardDataRequest) (*pb.ErrorResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	card := entity.CardDataDTO{
@@ -156,9 +156,9 @@ func (s *Server) SaveCardData(ctx context.Context, in *pb.SaveCardDataRequest) (
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
-			return nil, status.Errorf(codes.AlreadyExists, dv.Error())
+			return nil, status.Errorf(codes.AlreadyExists, "%s", dv.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.ErrorResponse{Error: "no errors"}, nil
@@ -168,16 +168,16 @@ func (s *Server) SaveCardData(ctx context.Context, in *pb.SaveCardDataRequest) (
 func (s *Server) GetRawData(ctx context.Context, in *pb.GetRawDataRequest) (*pb.GetRawDataResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	data, err := s.storageService.GetRawData(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
-			return nil, status.Errorf(codes.NotFound, nf.Error())
+			return nil, status.Errorf(codes.NotFound, "%s", nf.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.GetRawDataResponse{Data: data}, nil
@@ -187,16 +187,16 @@ func (s *Server) GetRawData(ctx context.Context, in *pb.GetRawDataRequest) (*pb.
 func (s *Server) GetLoginWithPassword(ctx context.Context, in *pb.GetLoginWithPasswordRequest) (*pb.GetLoginWithPasswordResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	data, err := s.storageService.GetLoginWithPassword(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
-			return nil, status.Errorf(codes.NotFound, nf.Error())
+			return nil, status.Errorf(codes.NotFound, "%s", nf.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.GetLoginWithPasswordResponse{Login: data.Login, Password: data.Password}, nil
@@ -206,16 +206,16 @@ func (s *Server) GetLoginWithPassword(ctx context.Context, in *pb.GetLoginWithPa
 func (s *Server) GetBinaryData(ctx context.Context, in *pb.GetBinaryDataRequest) (*pb.GetBinaryDataResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	data, err := s.storageService.GetBinaryData(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
-			return nil, status.Errorf(codes.NotFound, nf.Error())
+			return nil, status.Errorf(codes.NotFound, "%s", nf.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.GetBinaryDataResponse{Data: data}, nil
@@ -225,16 +225,16 @@ func (s *Server) GetBinaryData(ctx context.Context, in *pb.GetBinaryDataRequest)
 func (s *Server) GetCardData(ctx context.Context, in *pb.GetCardDataRequest) (*pb.GetCardDataResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	data, err := s.storageService.GetCardData(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
-			return nil, status.Errorf(codes.NotFound, nf.Error())
+			return nil, status.Errorf(codes.NotFound, "%s", nf.Error())
 		}
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.GetCardDataResponse{Number: data.Number, Month: data.Month, Year: data.Year, CardHolder: data.CardHolder}, nil
@@ -244,12 +244,12 @@ func (s *Server) GetCardData(ctx context.Context, in *pb.GetCardDataRequest) (*p
 func (s *Server) GetAllSavedDataNames(ctx context.Context, in *pb.GetAllSavedDataNamesRequest) (*pb.GetAllSavedDataNamesResponse, error) {
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, err.Error())
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
 	names, err := s.storageService.GetAllSavedDataNames(ctx, userID)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	return &pb.GetAllSavedDataNamesResponse{SavedDataNames: names}, nil

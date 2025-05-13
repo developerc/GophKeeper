@@ -35,6 +35,8 @@ type ConfigJSON struct {
 	TokenDuration int    `json:"token_duration"`
 }
 
+var ServerSettingsGlob *ServerSettings
+
 // NewServerSettings конструктор ServerSettings
 func NewServerSettings() (*ServerSettings, error) {
 	const (
@@ -128,6 +130,7 @@ func NewServerSettings() (*ServerSettings, error) {
 		}
 	}
 
+	ServerSettingsGlob = serverSettings
 	return serverSettings, nil
 }
 

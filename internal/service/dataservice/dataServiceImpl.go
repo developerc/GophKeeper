@@ -3,13 +3,14 @@ package dataservice
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	//"github.com/rs/zerolog/log"
 
+	"github.com/developerc/GophKeeper/internal/config"
 	"github.com/developerc/GophKeeper/internal/entity"
 	"github.com/developerc/GophKeeper/internal/repositories/datarepository"
 	"github.com/developerc/GophKeeper/internal/security"
+	"go.uber.org/zap"
 )
 
 type StorageService interface {
@@ -38,14 +39,16 @@ type storageServiceImpl struct {
 // SaveRawData метод для сохранения произвольных текстовых данных
 func (s storageServiceImpl) SaveRawData(ctx context.Context, name, data, userID string) error {
 	//log.Info().Msgf("dataservice: save raw data for user with ID %s", userID)
-	log.Printf("dataservice: save raw data for user with ID %s", userID)
+	//log.Printf("dataservice: save raw data for user with ID %s", userID)
+	config.ServerSettingsGlob.Logger.Info("SaveRawData", zap.String("dataservice", "save raw data"))
 	return s.encryptAndSaveData(ctx, name, userID, []byte(data), entity.RAW)
 }
 
 // GetRawData метод для получения произвольных текстовых данных
 func (s storageServiceImpl) GetRawData(ctx context.Context, name, userID string) (string, error) {
 	//log.Info().Msgf("dataservice: get raw data with name %s for user with ID %s", name, userID)
-	log.Printf("dataservice: get raw data with name %s for user with ID %s", name, userID)
+	//log.Printf("dataservice: get raw data with name %s for user with ID %s", name, userID)
+	config.ServerSettingsGlob.Logger.Info("GetRawData", zap.String("dataservice", "get raw data"))
 
 	decryptData, err := s.getAndDecryptData(ctx, name, userID, entity.RAW)
 	if err != nil {
@@ -58,7 +61,8 @@ func (s storageServiceImpl) GetRawData(ctx context.Context, name, userID string)
 // SaveLoginWithPassword метод для сохранения логина и пароля
 func (s storageServiceImpl) SaveLoginWithPassword(ctx context.Context, name, login, password, userID string) error {
 	//log.Info().Msgf("dataservice: save login with password for user with ID %s", userID)
-	log.Printf("dataservice: save login with password for user with ID %s", userID)
+	//log.Printf("dataservice: save login with password for user with ID %s", userID)
+	config.ServerSettingsGlob.Logger.Info("SaveLoginWithPassword", zap.String("dataservice", "save login with password"))
 	cred := entity.CredentialsDTO{
 		Login:    login,
 		Password: password,
@@ -74,7 +78,8 @@ func (s storageServiceImpl) SaveLoginWithPassword(ctx context.Context, name, log
 // GetLoginWithPassword метод для получения логина и пароля
 func (s storageServiceImpl) GetLoginWithPassword(ctx context.Context, name, userID string) (entity.CredentialsDTO, error) {
 	//log.Info().Msgf("dataservice: get credentials with name %s for user with ID %s", name, userID)
-	log.Printf("dataservice: get credentials with name %s for user with ID %s", name, userID)
+	//log.Printf("dataservice: get credentials with name %s for user with ID %s", name, userID)
+	config.ServerSettingsGlob.Logger.Info("GetLoginWithPassword", zap.String("dataservice", "get credentials"))
 
 	decryptData, err := s.getAndDecryptData(ctx, name, userID, entity.CRED)
 	if err != nil {
@@ -91,21 +96,24 @@ func (s storageServiceImpl) GetLoginWithPassword(ctx context.Context, name, user
 // SaveBinaryData метод для сохранения бинарных данных
 func (s storageServiceImpl) SaveBinaryData(ctx context.Context, name string, data []byte, userID string) error {
 	//log.Info().Msgf("dataservice: save binary data for user with ID %s", userID)
-	log.Printf("dataservice: save binary data for user with ID %s", userID)
+	//log.Printf("dataservice: save binary data for user with ID %s", userID)
+	config.ServerSettingsGlob.Logger.Info("SaveBinaryData", zap.String("dataservice", "save binary data"))
 	return s.encryptAndSaveData(ctx, name, userID, data, entity.FILE)
 }
 
 // GetBinaryData метод для получения логина и пароля
 func (s storageServiceImpl) GetBinaryData(ctx context.Context, name, userID string) ([]byte, error) {
 	//log.Info().Msgf("dataservice: get binary data with name %s for user with ID %s", name, userID)
-	log.Printf("dataservice: get binary data with name %s for user with ID %s", name, userID)
+	//log.Printf("dataservice: get binary data with name %s for user with ID %s", name, userID)
+	config.ServerSettingsGlob.Logger.Info("GetBinaryData", zap.String("dataservice", "get binary data"))
 	return s.getAndDecryptData(ctx, name, userID, entity.FILE)
 }
 
 // SaveCardData метод для сохранения данных банковской карты
 func (s storageServiceImpl) SaveCardData(ctx context.Context, name string, cardData entity.CardDataDTO, userID string) error {
 	//log.Info().Msgf("dataservice: save card data for user with ID %s", userID)
-	log.Printf("dataservice: save card data for user with ID %s", userID)
+	//log.Printf("dataservice: save card data for user with ID %s", userID)
+	config.ServerSettingsGlob.Logger.Info("SaveCardData", zap.String("dataservice", "save card data"))
 
 	marshalledCardData, err := json.Marshal(cardData)
 	if err != nil {
@@ -119,7 +127,8 @@ func (s storageServiceImpl) SaveCardData(ctx context.Context, name string, cardD
 // GetCardData метод для получения данных банковской карты
 func (s storageServiceImpl) GetCardData(ctx context.Context, name, userID string) (entity.CardDataDTO, error) {
 	//log.Info().Msgf("dataservice: get card data with name %s for user with ID %s", name, userID)
-	log.Printf("dataservice: get card data with name %s for user with ID %s", name, userID)
+	//log.Printf("dataservice: get card data with name %s for user with ID %s", name, userID)
+	config.ServerSettingsGlob.Logger.Info("GetCardData", zap.String("dataservice", "get card data"))
 
 	decryptData, err := s.getAndDecryptData(ctx, name, userID, entity.CARD)
 	if err != nil {
@@ -138,7 +147,8 @@ func (s storageServiceImpl) GetCardData(ctx context.Context, name, userID string
 // GetAllSavedDataNames метод для получения всех названий сохранений
 func (s storageServiceImpl) GetAllSavedDataNames(ctx context.Context, userID string) ([]string, error) {
 	//log.Info().Msgf("dataservice: get data names for user with ID %s", userID)
-	log.Printf("dataservice: get data names for user with ID %s", userID)
+	//log.Printf("dataservice: get data names for user with ID %s", userID)
+	config.ServerSettingsGlob.Logger.Info("GetAllSavedDataNames", zap.String("dataservice", "get data names"))
 	return s.rawDataRepository.GetAllSavedDataNames(ctx, userID)
 }
 

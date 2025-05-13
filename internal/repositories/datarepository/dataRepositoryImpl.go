@@ -3,13 +3,16 @@ package datarepository
 import (
 	"context"
 	"database/sql"
-	"log"
+	"errors"
 
-	"github.com/omeid/pgerror"
+	//"github.com/omeid/pgerror"
 	//"github.com/rs/zerolog/log"
 
+	"github.com/developerc/GophKeeper/internal/config"
 	"github.com/developerc/GophKeeper/internal/entity"
 	"github.com/developerc/GophKeeper/internal/entity/myerrors"
+	"github.com/jackc/pgx/v5/pgconn"
+	"go.uber.org/zap"
 )
 
 const (
@@ -43,16 +46,26 @@ func New(db *sql.DB) RawDataRepository {
 	}
 }
 
+func isDuplicateKeyError(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "23505"
+}
+
 // Save сохранение зашифрованных данных
 func (r *rawDataRepositoryImpl) Save(ctx context.Context, userID, name string, data []byte, dataType entity.DataType) error {
 	//log.Info().Msgf("datarepository: save data with name %s for user with ID %s to db", name, userID)
-	log.Printf("datarepository: save data with name %s for user with ID %s to db", name, userID)
+	config.ServerSettingsGlob.Logger.Info("Save", zap.String("datarepository", "save data to db"))
+	//log.Printf("datarepository: save data with name %s for user with ID %s to db", name, userID)
 	_, err := r.db.ExecContext(ctx, insertDataQuery, name, dataType, data, userID)
 
 	if err != nil {
-		if e := pgerror.UniqueViolation(err); e != nil {
+		//log.Println(err.Error())
+		if isDuplicateKeyError(err) {
 			return myerrors.NewDataViolationError(name, err)
 		}
+		/*if e := pgerror.UniqueViolation(err); e != nil {
+			return myerrors.NewDataViolationError(name, err)
+		}*/
 		return err
 	}
 	return nil
@@ -62,7 +75,8 @@ func (r *rawDataRepositoryImpl) Save(ctx context.Context, userID, name string, d
 func (r *rawDataRepositoryImpl) GetByNameAndTypeAndUserID(ctx context.Context, userID, name string, dataType entity.DataType) ([]byte, error) {
 	var data []byte
 	//log.Info().Msgf("datarepository: get data type of %s with name %s for user with ID %s from db", dataType.String(), name, userID)
-	log.Printf("datarepository: get data type of %s with name %s for user with ID %s from db", dataType.String(), name, userID)
+	//log.Printf("datarepository: get data type of %s with name %s for user with ID %s from db", dataType.String(), name, userID)
+	config.ServerSettingsGlob.Logger.Info("GetByNameAndTypeAndUserID", zap.String("datarepository", "get data from db"))
 	row := r.db.QueryRowContext(ctx, getDataQuery, userID, name, dataType)
 	err := row.Scan(&data)
 	if err != nil {
@@ -79,7 +93,8 @@ func (r *rawDataRepositoryImpl) GetAllSavedDataNames(ctx context.Context, userID
 	nameList := make([]string, 0)
 
 	//log.Info().Msgf("datarepository: get data names for user with ID %s from db", userID)
-	log.Printf("datarepository: get data names for user with ID %s from db", userID)
+	//log.Printf("datarepository: get data names for user with ID %s from db", userID)
+	config.ServerSettingsGlob.Logger.Info("GetAllSavedDataNames", zap.String("datarepository", "get all names from db"))
 	rows, err := r.db.QueryContext(ctx, getAllDataNamesByUserIDQuery, userID)
 	if err != nil {
 		return nil, err

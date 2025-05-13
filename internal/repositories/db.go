@@ -3,16 +3,17 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"log"
 
+	"github.com/developerc/GophKeeper/internal/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
 )
 
 const (
 	initUsersTableQuery = "" +
 		"CREATE TABLE IF NOT EXISTS public.users (" +
 		"id varchar(45) primary key, " +
-		"login varchar(45) unique not null, " +
+		"login varchar(45) UNIQUE not null, " +
 		"password varchar(45) not null" +
 		")"
 	initDataTableQuery = "" +
@@ -32,12 +33,14 @@ func InitDB(ctx context.Context, dbAddress string) (*sql.DB, error) {
 	}
 	db, connectionErr := sql.Open("pgx", dbAddress)
 	if connectionErr != nil {
-		log.Println(connectionErr)
+		//log.Println(connectionErr)
+		config.ServerSettingsGlob.Logger.Info("InitDB", zap.String("error", connectionErr.Error()))
 		return nil, connectionErr
 	}
 	createTableErr := createTableIfNotExists(ctx, db)
 	if createTableErr != nil {
-		log.Println(createTableErr)
+		//log.Println(createTableErr)
+		config.ServerSettingsGlob.Logger.Info("InitDB", zap.String("error", createTableErr.Error()))
 		return nil, createTableErr
 	}
 	return db, nil

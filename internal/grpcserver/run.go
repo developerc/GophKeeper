@@ -28,6 +28,7 @@ func Run() error {
 	if err != nil {
 		return err
 	}
+
 	//fmt.Println(settings)
 	db, err := repositories.InitDB(ctx, settings.DataBaseDsn)
 	if err != nil {

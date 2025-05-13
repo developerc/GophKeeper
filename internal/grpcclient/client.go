@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/developerc/GophKeeper/internal/config"
@@ -43,18 +45,51 @@ func NewClientManager() (*ClientManager, error) {
 	return &clientManager, nil
 }
 
-//var serverSettings *config.ServerSettings
+var (
+	//go:embed version.txt
+	buildVersion string
+	//go:embed date.txt
+	buildDate string
+)
+
+const menu = "" +
+	"МЕНЮ:\n" +
+	"0 Выход из приложения\n" +
+	"1 Регистрация пользователя\n" +
+	"2 Аутентификация\n" +
+	"3 Сохранение сырых данных \"строка\"\n" +
+	"4 Получение сырых данных \"строка\"\n" +
+	"5 Сохранение логин, пароля\n" +
+	"6 Получение логин, пароля\n" +
+	"7 Сохранение бинарных данных\n" +
+	"8 Получение бинарных данных\n" +
+	"9 Сохранение данных карты\n" +
+	"10 Получение данных карты\n" +
+	"11 Получение всех сохраненных имен\n"
 
 // main запускает клиента gRPC
 func main() {
+	log.SetFlags(0)
+	BuildVersion := strings.TrimSpace(buildVersion)
+	if len(BuildVersion) > 0 {
+		log.Printf("Build version: %q\n", BuildVersion)
+	} else {
+		log.Printf("Build version: N/A\n")
+	}
+
+	BuildDate := strings.TrimSpace(buildDate)
+	if len(BuildDate) > 0 {
+		log.Printf("Build date: %q\n", BuildDate)
+	} else {
+		log.Printf("Build date: N/A\n")
+	}
+	log.SetFlags(3)
+	var choice int
 	cm, err := NewClientManager()
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	// создадим клиент grpc //с перехватчиком
 	conn, err := grpc.NewClient(cm.ServerSettings.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -64,8 +99,42 @@ func main() {
 	}
 	defer conn.Close()
 	cm.GrpcClient = pb.NewGrpcServiceClient(conn)
+
+	fmt.Print(menu)
+
+	for {
+		fmt.Println("Сделайте выбор меню:")
+		fmt.Scan(&choice)
+		//fmt.Println(choice)
+		switch choice {
+		case 0:
+			exitApp()
+		case 1:
+			CreateUser(cm)
+		case 2:
+			LoginUser(cm)
+		case 3:
+			SaveRawData(cm)
+		case 4:
+			GetRawData(cm)
+		case 5:
+			SaveLoginWithPassword(cm)
+		case 6:
+			GetLoginWithPassword(cm)
+		case 7:
+			SaveBinaryData(cm)
+		case 8:
+			GetBinaryData(cm)
+		case 9:
+			SaveCardData(cm)
+		case 10:
+			GetCardData(cm)
+		case 11:
+			GetAllSavedDataNames(cm)
+		}
+	}
 	//-- вводим логин, пароль
-	cm.Lgn = "myLogin"
+	/*cm.Lgn = "myLogin"
 	cm.Psw = "myPassword"
 	//-- регистрируем юзера
 	//fmt.Println(cm)
@@ -76,14 +145,14 @@ func main() {
 		log.Println("Регистрация прошла успешно, userID: ", cm.UserID)
 	}
 
-	//-- авторизуемся
+	//-- аутентификация
 	cm.Lgn = "myLogin"
 	cm.Psw = "myPassword"
 	err = cm.LoginUser(ctx)
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Println("Авторизация прошла успешно, userID: ", cm.UserID)
+		log.Println("Аутентификация прошла успешно, userID: ", cm.UserID)
 	}
 
 	// сохраняем сырые данные строка
@@ -180,7 +249,7 @@ func main() {
 		for _, n := range getAllSavedDataNamesResponse.SavedDataNames {
 			fmt.Println(n)
 		}
-	}
+	}*/
 
 	/*var userClaims *UserClaims
 	var err error
@@ -374,6 +443,213 @@ func main() {
 			fmt.Println(n)
 		}
 	}*/
+}
+func exitApp() {
+	var confirm string
+	fmt.Println("Подтвердите выход y/n")
+	fmt.Scan(&confirm)
+	if confirm == "y" {
+		os.Exit(0)
+	}
+}
+
+func CreateUser(cm *ClientManager) {
+	var lgn string
+	var psw string
+
+	fmt.Println("Регистрируем пользователя. Введите логин:")
+	fmt.Scan(&lgn)
+	fmt.Println("Введите пароль:")
+	fmt.Scan(&psw)
+	cm.Lgn = lgn
+	cm.Psw = psw
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err := cm.CreateUser(ctx)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Регистрация прошла успешно, userID: ", cm.UserID)
+	}
+}
+
+func LoginUser(cm *ClientManager) {
+	var lgn string
+	var psw string
+
+	fmt.Println("Проводим аутентификацию. Введите логин:")
+	fmt.Scan(&lgn)
+	fmt.Println("Введите пароль:")
+	fmt.Scan(&psw)
+	cm.Lgn = lgn
+	cm.Psw = psw
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cm.Lgn = lgn
+	cm.Psw = psw
+	err := cm.LoginUser(ctx)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Аутентификация прошла успешно, userID: ", cm.UserID)
+	}
+}
+
+func SaveRawData(cm *ClientManager) {
+	var name string
+	var data string
+
+	fmt.Println("Добавляем сырые данные, строка. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите сохраняемую строку:")
+	fmt.Scan(&data)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.SaveRawData(ctx, name, data)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Сырые данные сохранены успешно: ", errorResponse.Error)
+	}
+}
+
+func GetRawData(cm *ClientManager) {
+	var name string
+	fmt.Println("Получаем сырые данные, строка. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	getRawDataResponse, err := cm.GetRawData(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Получены сырые данные: ", getRawDataResponse.Data)
+	}
+}
+
+func SaveLoginWithPassword(cm *ClientManager) {
+	var name string
+	var login string
+	var password string
+	fmt.Println("Добавляем логин, пароль. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите сохраняемый логин:")
+	fmt.Scan(&login)
+	fmt.Println("Введите сохраняемый пароль:")
+	fmt.Scan(&password)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.SaveLoginWithPassword(ctx, name, login, password)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Логин, пароль сохранены успешно: ", errorResponse.Error)
+	}
+}
+
+func GetLoginWithPassword(cm *ClientManager) {
+	var name string
+	fmt.Println("Получаем логин, пароль. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	getLoginWithPasswordResponse, err := cm.GetLoginWithPassword(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Получены логин, пароль: ", getLoginWithPasswordResponse.Login, getLoginWithPasswordResponse.Password)
+	}
+}
+
+func SaveBinaryData(cm *ClientManager) {
+	var name string
+	var myBinaryStr string
+	var myBinary []byte
+	//myBinary := []byte("my_binary_data")
+	//name = "binData1"
+	fmt.Println("Добавляем бинарные данные. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите сохраняемые бинарные данные как строку:")
+	fmt.Scan(&myBinaryStr)
+	myBinary = []byte(myBinaryStr)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.SaveBinaryData(ctx, name, myBinary)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Бинарные данные сохранены успешно: ", errorResponse.Error)
+	}
+}
+
+func GetBinaryData(cm *ClientManager) {
+	var name string
+	fmt.Println("Получаем бинарные данные. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	getBinaryDataResponse, err := cm.GetBinaryData(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Получены бинарные данные, строка: ", string(getBinaryDataResponse.Data))
+	}
+}
+
+func SaveCardData(cm *ClientManager) {
+	var name string
+	var number string
+	var month string
+	var year string
+	var cardHolder string
+
+	fmt.Println("Добавляем данные карты. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите номер карты:")
+	fmt.Scan(&number)
+	fmt.Println("Введите месяц выдачи карты:")
+	fmt.Scan(&month)
+	fmt.Println("Введите год выдачи карты:")
+	fmt.Scan(&year)
+	fmt.Println("Введите держателя карты:")
+	fmt.Scan(&cardHolder)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.SaveCardData(ctx, name, number, month, year, cardHolder)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Данные карты сохранены успешно: ", errorResponse.Error)
+	}
+}
+
+func GetCardData(cm *ClientManager) {
+	var name string
+	//name = "myCard1"
+	fmt.Println("Получаем данные карты. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	getCardDataResponse, err := cm.GetCardData(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Printf("Получены данные карты: номер %s, месяц %s, год %s, держатель карты %s\n", getCardDataResponse.Number, getCardDataResponse.Month, getCardDataResponse.Year, getCardDataResponse.CardHolder)
+	}
+}
+
+func GetAllSavedDataNames(cm *ClientManager) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	getAllSavedDataNamesResponse, err := cm.GetAllSavedDataNames(ctx)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("список сохраненных имен:")
+		for _, n := range getAllSavedDataNamesResponse.SavedDataNames {
+			fmt.Println(n)
+		}
+	}
 }
 
 // func getLoginPassword(tokenString string) (*security.UserClaims, error) {
