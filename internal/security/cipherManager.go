@@ -1,3 +1,4 @@
+// security пакет шифрования
 package security
 
 import (
@@ -9,10 +10,12 @@ import (
 	"io"
 )
 
+// CipherManager структура менеджера шифрования
 type CipherManager struct {
 	secretKey []byte
 }
 
+// NewCipherManager конструктор менеджера шифрования
 func NewCipherManager(key string) (*CipherManager, error) {
 	secretKey, err := hex.DecodeString(key)
 	if err != nil {
@@ -21,6 +24,7 @@ func NewCipherManager(key string) (*CipherManager, error) {
 	return &CipherManager{secretKey: secretKey}, nil
 }
 
+// Encrypt зашифровывает данные
 func (cm *CipherManager) Encrypt(plaintext []byte) ([]byte, error) {
 	c, err := aes.NewCipher(cm.secretKey)
 	if err != nil {
@@ -40,6 +44,7 @@ func (cm *CipherManager) Encrypt(plaintext []byte) ([]byte, error) {
 	return gcm.Seal(nonce, nonce, plaintext, nil), nil
 }
 
+// Decrypt расшифровывает данные
 func (cm *CipherManager) Decrypt(ciphertext []byte) ([]byte, error) {
 	c, err := aes.NewCipher(cm.secretKey)
 	if err != nil {

@@ -1,3 +1,4 @@
+// grpcserver пакет GRPC сервера
 package grpcserver
 
 import (
@@ -25,14 +26,12 @@ func Run() error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	//ctx := context.Background()
 
 	settings, err := config.NewServerSettings()
 	if err != nil {
 		return err
 	}
 
-	//fmt.Println(settings)
 	db, err := repositories.InitDB(ctx, settings.DataBaseDsn)
 	if err != nil {
 		return err
@@ -45,7 +44,7 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-	//fmt.Println(jwtManager)
+
 	cipherManager, err := security.NewCipherManager(settings.Key)
 	if err != nil {
 		return err

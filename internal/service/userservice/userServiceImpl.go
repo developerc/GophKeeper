@@ -1,3 +1,4 @@
+// userservice пакет пользовательского сервиса
 package userservice
 
 import (
@@ -10,13 +11,16 @@ import (
 	"go.uber.org/zap"
 )
 
+// UserService интерфейс пользовательского сервиса
 type UserService interface {
 	Create(ctx context.Context, login, password, userID string) error
 	Login(ctx context.Context, login, password string) (string, error)
 }
 
+// UserService экземпляр пользовательского сервиса
 var _ UserService = &userServiceImpl{}
 
+// userServiceImpl структура пользовательского сервиса
 type userServiceImpl struct {
 	userRepository userrepository.UserRepository
 }
@@ -24,22 +28,15 @@ type userServiceImpl struct {
 // Create метод для регистрации пользователя
 func (u userServiceImpl) Create(ctx context.Context, login, password, userID string) error {
 	encodedPassword := base64.StdEncoding.EncodeToString([]byte(password))
-	//config.Config.GetServerSettings().Logger.Info("Init gRPC service", zap.String("error", err.Error()))
-	//log.Info().Msgf("save user with ID %s and login %s to db", userID, login)
-	//fmt.Printf("save user with ID %s and login %s to db", userID, login)
 	config.ServerSettingsGlob.Logger.Info("Create", zap.String("userservice", "save new user"))
 	return u.userRepository.Save(ctx, userID, login, encodedPassword)
 }
 
 // Login метод для авторизации
 func (u userServiceImpl) Login(ctx context.Context, login, password string) (string, error) {
-	//log.Info().Msgf("userservice: find user with login %s in db", login)
-	//fmt.Printf("userservice: find user with login %s in db", login)
 	config.ServerSettingsGlob.Logger.Info("Login", zap.String("userservice", "find user"))
 	foundUser, err := u.userRepository.FindByLogin(ctx, login)
 	if err != nil {
-		//log.Error().Msgf("user with login %s not found", login)
-		//fmt.Printf("user with login %s not found", login)
 		config.ServerSettingsGlob.Logger.Info("Login", zap.String("userservice", "user not found"))
 		return "", err
 	}
@@ -49,8 +46,6 @@ func (u userServiceImpl) Login(ctx context.Context, login, password string) (str
 	}
 
 	if password != string(decodedPassword) {
-		//log.Error().Msgf("userservice: password %s is invalid", password)
-		//fmt.Printf("userservice: password %s is invalid", password)
 		config.ServerSettingsGlob.Logger.Info("Login", zap.String("userservice", "password is invalid"))
 		return "", &myerrors.InvalidPasswordError{Password: password}
 	}

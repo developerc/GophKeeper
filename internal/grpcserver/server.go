@@ -1,3 +1,4 @@
+// grpcserver пакет GRPC сервера
 package grpcserver
 
 import (
@@ -35,7 +36,6 @@ func NewServer(userService userservice.UserService, jwtManager *security.JWTMana
 
 // CreateUser эндпойнт сохранения нового пользователя, генерит токен и отдает в теле респонса
 func (s *Server) CreateUser(ctx context.Context, in *pb.UserRegisterRequest) (*pb.AuthorizedResponse, error) {
-	//fmt.Println(in.Login, in.Password)
 	login := in.Login
 	password := in.Password
 	userID := uuid.New().String()
@@ -81,12 +81,10 @@ func (s *Server) LoginUser(ctx context.Context, in *pb.UserAuthorizedRequest) (*
 
 // SaveRawData эндпойнт сохранения произвольной текстовой информации для авторизованного пользователя
 func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*pb.ErrorResponse, error) {
-	//fmt.Println("from SaveRawData")
 	userID, err := s.jwtManager.ExtractUserID(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-	//fmt.Println(userID)
 
 	err = s.storageService.SaveRawData(ctx, in.Name, in.Data, userID)
 	if err != nil {
@@ -151,7 +149,6 @@ func (s *Server) SaveCardData(ctx context.Context, in *pb.SaveCardDataRequest) (
 		Year:       in.Year,
 		CardHolder: in.CardHolder,
 	}
-	//fmt.Println(card)
 
 	err = s.storageService.SaveCardData(ctx, in.Name, card, userID)
 	if err != nil {
@@ -265,7 +262,7 @@ func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userSer
 	}
 	settings.Logger.Info("Init gRPC service", zap.String("start at host:port", settings.Host))
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(security.ServerJwtInterceptor))
 
 	go func() {
 		defer close(beforeStop)
