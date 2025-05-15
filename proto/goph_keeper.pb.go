@@ -917,6 +917,50 @@ func (x *GetAllSavedDataNamesResponse) GetSavedDataNames() []string {
 	return nil
 }
 
+type DelRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DelRequest) Reset() {
+	*x = DelRequest{}
+	mi := &file_proto_goph_keeper_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DelRequest) ProtoMessage() {}
+
+func (x *DelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_goph_keeper_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DelRequest.ProtoReflect.Descriptor instead.
+func (*DelRequest) Descriptor() ([]byte, []int) {
+	return file_proto_goph_keeper_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DelRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 var File_proto_goph_keeper_proto protoreflect.FileDescriptor
 
 const file_proto_goph_keeper_proto_rawDesc = "" +
@@ -974,7 +1018,10 @@ const file_proto_goph_keeper_proto_rawDesc = "" +
 	"CardHolder\"\x1d\n" +
 	"\x1bGetAllSavedDataNamesRequest\"H\n" +
 	"\x1cGetAllSavedDataNamesResponse\x12(\n" +
-	"\x10saved_data_names\x18\x01 \x03(\tR\x0esavedDataNames2\xe1\x06\n" +
+	"\x10saved_data_names\x18\x01 \x03(\tR\x0esavedDataNames\" \n" +
+	"\n" +
+	"DelRequest\x12\x12\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name2\xd3\b\n" +
 	"\vGrpcService\x12E\n" +
 	"\n" +
 	"CreateUser\x12\x1b.server.UserRegisterRequest\x1a\x1a.server.AuthorizedResponse\x12F\n" +
@@ -988,7 +1035,12 @@ const file_proto_goph_keeper_proto_rawDesc = "" +
 	"\x14GetLoginWithPassword\x12#.server.GetLoginWithPasswordRequest\x1a$.server.GetLoginWithPasswordResponse\x12L\n" +
 	"\rGetBinaryData\x12\x1c.server.GetBinaryDataRequest\x1a\x1d.server.GetBinaryDataResponse\x12F\n" +
 	"\vGetCardData\x12\x1a.server.GetCardDataRequest\x1a\x1b.server.GetCardDataResponse\x12a\n" +
-	"\x14GetAllSavedDataNames\x12#.server.GetAllSavedDataNamesRequest\x1a$.server.GetAllSavedDataNamesResponseB(Z&github.com/developerc/GophKeeper/protob\x06proto3"
+	"\x14GetAllSavedDataNames\x12#.server.GetAllSavedDataNamesRequest\x1a$.server.GetAllSavedDataNamesResponse\x127\n" +
+	"\n" +
+	"DelRawData\x12\x12.server.DelRequest\x1a\x15.server.ErrorResponse\x12A\n" +
+	"\x14DelLoginWithPassword\x12\x12.server.DelRequest\x1a\x15.server.ErrorResponse\x12:\n" +
+	"\rDelBinaryData\x12\x12.server.DelRequest\x1a\x15.server.ErrorResponse\x128\n" +
+	"\vDelCardData\x12\x12.server.DelRequest\x1a\x15.server.ErrorResponseB(Z&github.com/developerc/GophKeeper/protob\x06proto3"
 
 var (
 	file_proto_goph_keeper_proto_rawDescOnce sync.Once
@@ -1002,7 +1054,7 @@ func file_proto_goph_keeper_proto_rawDescGZIP() []byte {
 	return file_proto_goph_keeper_proto_rawDescData
 }
 
-var file_proto_goph_keeper_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_proto_goph_keeper_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_proto_goph_keeper_proto_goTypes = []any{
 	(*ErrorResponse)(nil),                // 0: server.ErrorResponse
 	(*UserRegisterRequest)(nil),          // 1: server.UserRegisterRequest
@@ -1022,6 +1074,7 @@ var file_proto_goph_keeper_proto_goTypes = []any{
 	(*GetCardDataResponse)(nil),          // 15: server.GetCardDataResponse
 	(*GetAllSavedDataNamesRequest)(nil),  // 16: server.GetAllSavedDataNamesRequest
 	(*GetAllSavedDataNamesResponse)(nil), // 17: server.GetAllSavedDataNamesResponse
+	(*DelRequest)(nil),                   // 18: server.DelRequest
 }
 var file_proto_goph_keeper_proto_depIdxs = []int32{
 	1,  // 0: server.GrpcService.CreateUser:input_type -> server.UserRegisterRequest
@@ -1035,19 +1088,27 @@ var file_proto_goph_keeper_proto_depIdxs = []int32{
 	12, // 8: server.GrpcService.GetBinaryData:input_type -> server.GetBinaryDataRequest
 	14, // 9: server.GrpcService.GetCardData:input_type -> server.GetCardDataRequest
 	16, // 10: server.GrpcService.GetAllSavedDataNames:input_type -> server.GetAllSavedDataNamesRequest
-	3,  // 11: server.GrpcService.CreateUser:output_type -> server.AuthorizedResponse
-	3,  // 12: server.GrpcService.LoginUser:output_type -> server.AuthorizedResponse
-	0,  // 13: server.GrpcService.SaveRawData:output_type -> server.ErrorResponse
-	0,  // 14: server.GrpcService.SaveLoginWithPassword:output_type -> server.ErrorResponse
-	0,  // 15: server.GrpcService.SaveBinaryData:output_type -> server.ErrorResponse
-	0,  // 16: server.GrpcService.SaveCardData:output_type -> server.ErrorResponse
-	9,  // 17: server.GrpcService.GetRawData:output_type -> server.GetRawDataResponse
-	11, // 18: server.GrpcService.GetLoginWithPassword:output_type -> server.GetLoginWithPasswordResponse
-	13, // 19: server.GrpcService.GetBinaryData:output_type -> server.GetBinaryDataResponse
-	15, // 20: server.GrpcService.GetCardData:output_type -> server.GetCardDataResponse
-	17, // 21: server.GrpcService.GetAllSavedDataNames:output_type -> server.GetAllSavedDataNamesResponse
-	11, // [11:22] is the sub-list for method output_type
-	0,  // [0:11] is the sub-list for method input_type
+	18, // 11: server.GrpcService.DelRawData:input_type -> server.DelRequest
+	18, // 12: server.GrpcService.DelLoginWithPassword:input_type -> server.DelRequest
+	18, // 13: server.GrpcService.DelBinaryData:input_type -> server.DelRequest
+	18, // 14: server.GrpcService.DelCardData:input_type -> server.DelRequest
+	3,  // 15: server.GrpcService.CreateUser:output_type -> server.AuthorizedResponse
+	3,  // 16: server.GrpcService.LoginUser:output_type -> server.AuthorizedResponse
+	0,  // 17: server.GrpcService.SaveRawData:output_type -> server.ErrorResponse
+	0,  // 18: server.GrpcService.SaveLoginWithPassword:output_type -> server.ErrorResponse
+	0,  // 19: server.GrpcService.SaveBinaryData:output_type -> server.ErrorResponse
+	0,  // 20: server.GrpcService.SaveCardData:output_type -> server.ErrorResponse
+	9,  // 21: server.GrpcService.GetRawData:output_type -> server.GetRawDataResponse
+	11, // 22: server.GrpcService.GetLoginWithPassword:output_type -> server.GetLoginWithPasswordResponse
+	13, // 23: server.GrpcService.GetBinaryData:output_type -> server.GetBinaryDataResponse
+	15, // 24: server.GrpcService.GetCardData:output_type -> server.GetCardDataResponse
+	17, // 25: server.GrpcService.GetAllSavedDataNames:output_type -> server.GetAllSavedDataNamesResponse
+	0,  // 26: server.GrpcService.DelRawData:output_type -> server.ErrorResponse
+	0,  // 27: server.GrpcService.DelLoginWithPassword:output_type -> server.ErrorResponse
+	0,  // 28: server.GrpcService.DelBinaryData:output_type -> server.ErrorResponse
+	0,  // 29: server.GrpcService.DelCardData:output_type -> server.ErrorResponse
+	15, // [15:30] is the sub-list for method output_type
+	0,  // [0:15] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name
@@ -1064,7 +1125,7 @@ func file_proto_goph_keeper_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_goph_keeper_proto_rawDesc), len(file_proto_goph_keeper_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

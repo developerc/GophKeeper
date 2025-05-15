@@ -64,7 +64,11 @@ const menu = "" +
 	"8 Получение бинарных данных\n" +
 	"9 Сохранение данных карты\n" +
 	"10 Получение данных карты\n" +
-	"11 Получение всех сохраненных имен\n"
+	"11 Получение всех сохраненных имен\n" +
+	"12 Удаление сырых данных\n" +
+	"13 Удаление логин, пароля\n" +
+	"14 Удаление бинарных данных\n" +
+	"15 Удаление данных карты\n"
 
 // main запускает клиента gRPC
 func main() {
@@ -129,6 +133,14 @@ func main() {
 			GetCardData(cm)
 		case 11:
 			GetAllSavedDataNames(cm)
+		case 12:
+			DelRawData(cm)
+		case 13:
+			DelLoginWithPassword(cm)
+		case 14:
+			DelBinaryData(cm)
+		case 15:
+			DelCardData(cm)
 		}
 	}
 
@@ -326,7 +338,7 @@ func SaveCardData(cm *ClientManager) {
 // GetCardData получение данных банковской карты по названию для авторизованного пользователя
 func GetCardData(cm *ClientManager) {
 	var name string
-	//name = "myCard1"
+
 	fmt.Println("Получаем данные карты. Введите имя в хранилище:")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -351,6 +363,66 @@ func GetAllSavedDataNames(cm *ClientManager) {
 		for _, n := range getAllSavedDataNamesResponse.SavedDataNames {
 			fmt.Println(n)
 		}
+	}
+}
+
+// DelRawData удаляет сырые данные
+func DelRawData(cm *ClientManager) {
+	var name string
+	fmt.Println("Удаляем сырые данные. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.DelRawData(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Сырые данные удалены успешно: ", errorResponse.Error)
+	}
+}
+
+// DelLoginWithPassword удаляет данные логин, пароль
+func DelLoginWithPassword(cm *ClientManager) {
+	var name string
+	fmt.Println("Удаляем данные логин, пароль. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.DelLoginWithPassword(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Данные логин, пароль удалены успешно: ", errorResponse.Error)
+	}
+}
+
+// DelBinaryData удаляет бинарные данные
+func DelBinaryData(cm *ClientManager) {
+	var name string
+	fmt.Println("Удаляем бинарные данные. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.DelBinaryData(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Бинарные данные удалены успешно: ", errorResponse.Error)
+	}
+}
+
+// DelCardData удаляет данные карты
+func DelCardData(cm *ClientManager) {
+	var name string
+	fmt.Println("Удаляем данные карты. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.DelCardData(ctx, name)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Данные карты удалены успешно: ", errorResponse.Error)
 	}
 }
 
@@ -541,4 +613,64 @@ func (cm *ClientManager) GetAllSavedDataNames(ctx context.Context) (*pb.GetAllSa
 		return nil, err
 	}
 	return getAllSavedDataNamesResponse, nil
+}
+
+// DelRawData удаляет сырые данные
+func (cm *ClientManager) DelRawData(ctx context.Context, name string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.DelRawData(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// DelLoginWithPassword удаляет данные с логин, паролем
+func (cm *ClientManager) DelLoginWithPassword(ctx context.Context, name string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.DelLoginWithPassword(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// DelBinaryData удаляет бинарные данные
+func (cm *ClientManager) DelBinaryData(ctx context.Context, name string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.DelBinaryData(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// DelCardData удаляет данные карты
+func (cm *ClientManager) DelCardData(ctx context.Context, name string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.DelCardData(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
 }

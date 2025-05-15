@@ -26,6 +26,8 @@ type StorageService interface {
 	GetCardData(ctx context.Context, name, userID string) (entity.CardDataDTO, error)
 
 	GetAllSavedDataNames(ctx context.Context, userID string) ([]string, error)
+
+	DelDataByNameUserId(ctx context.Context, name, userID string) error
 }
 
 // StorageService экземпляр сервиса хранилища
@@ -132,6 +134,11 @@ func (s storageServiceImpl) GetCardData(ctx context.Context, name, userID string
 func (s storageServiceImpl) GetAllSavedDataNames(ctx context.Context, userID string) ([]string, error) {
 	config.ServerSettingsGlob.Logger.Info("GetAllSavedDataNames", zap.String("dataservice", "get data names"))
 	return s.rawDataRepository.GetAllSavedDataNames(ctx, userID)
+}
+
+func (s storageServiceImpl) DelDataByNameUserId(ctx context.Context, name, userID string) error {
+	config.ServerSettingsGlob.Logger.Info("DelDataByNameUserId", zap.String("storageServiceImpl", "delete data from db"))
+	return s.rawDataRepository.DelDataByNameUserId(ctx, name, userID)
 }
 
 func (s storageServiceImpl) encryptAndSaveData(

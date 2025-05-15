@@ -253,6 +253,59 @@ func (s *Server) GetAllSavedDataNames(ctx context.Context, in *pb.GetAllSavedDat
 	return &pb.GetAllSavedDataNamesResponse{SavedDataNames: names}, nil
 }
 
+// DelRawData удаляет сырые данные
+func (s *Server) DelRawData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
+	config.ServerSettingsGlob.Logger.Info("DelRawData", zap.String("server", "delete data from db"))
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+	err = s.storageService.DelDataByNameUserId(ctx, in.Name, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	}
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+func (s *Server) DelLoginWithPassword(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
+	config.ServerSettingsGlob.Logger.Info("DelLoginWithPassword", zap.String("server", "delete data from db"))
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+	err = s.storageService.DelDataByNameUserId(ctx, in.Name, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	}
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+func (s *Server) DelBinaryData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
+	config.ServerSettingsGlob.Logger.Info("DelBinaryData", zap.String("server", "delete data from db"))
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+	err = s.storageService.DelDataByNameUserId(ctx, in.Name, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	}
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+func (s *Server) DelCardData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
+	config.ServerSettingsGlob.Logger.Info("DelCardData", zap.String("server", "delete data from db"))
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+	err = s.storageService.DelDataByNameUserId(ctx, in.Name, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	}
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
 // NewGRPCserver конструктор GRPC сервера
 func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService, db *sql.DB) {
 	lis, err := net.Listen("tcp", settings.Host) // будем ждать запросы по этому адресу

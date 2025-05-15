@@ -89,6 +89,10 @@ message GetAllSavedDataNamesResponse {
   repeated string saved_data_names = 1;
 }
 
+message DelRequest {
+  string Name = 1;
+}
+
 service GrpcService {
   rpc CreateUser(UserRegisterRequest) returns (AuthorizedResponse);
   rpc LoginUser(UserAuthorizedRequest) returns (AuthorizedResponse);
@@ -104,4 +108,9 @@ service GrpcService {
   rpc GetCardData(GetCardDataRequest) returns (GetCardDataResponse);
 
   rpc GetAllSavedDataNames(GetAllSavedDataNamesRequest) returns (GetAllSavedDataNamesResponse);
+
+  rpc DelRawData(DelRequest) returns (ErrorResponse);
+  rpc DelLoginWithPassword(DelRequest) returns (ErrorResponse);
+  rpc DelBinaryData(DelRequest) returns (ErrorResponse);
+  rpc DelCardData(DelRequest) returns (ErrorResponse);
 }

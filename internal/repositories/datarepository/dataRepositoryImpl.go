@@ -24,6 +24,8 @@ const (
 		"SELECT name " +
 		"FROM public.raw_data " +
 		"WHERE user_id=$1"
+	delDataByNameUserId = "" +
+		"DELETE FROM public.raw_data WHERE name=$1 AND user_id=$2"
 )
 
 // RawDataRepository интерфейс репозитория данных
@@ -31,6 +33,7 @@ type RawDataRepository interface {
 	Save(ctx context.Context, userID, name string, data []byte, dataType entity.DataType) error
 	GetByNameAndTypeAndUserID(ctx context.Context, userID, name string, dataType entity.DataType) ([]byte, error)
 	GetAllSavedDataNames(ctx context.Context, userID string) ([]string, error)
+	DelDataByNameUserId(ctx context.Context, name, userID string) error
 }
 
 // rawDataRepositoryImpl структура репозитория данных
@@ -107,4 +110,13 @@ func (r *rawDataRepositoryImpl) GetAllSavedDataNames(ctx context.Context, userID
 	}
 
 	return nameList, nil
+}
+
+func (r *rawDataRepositoryImpl) DelDataByNameUserId(ctx context.Context, name, userID string) error {
+	config.ServerSettingsGlob.Logger.Info("DelDataByNameUserId", zap.String("RawDataRepository", "delete data from db"))
+	_, err := r.db.ExecContext(ctx, delDataByNameUserId, name, userID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
