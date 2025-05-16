@@ -161,7 +161,7 @@ func main() {
 // exitApp завершает приложение
 func exitApp() {
 	var confirm string
-	fmt.Println("Подтвердите выход y/n")
+	fmt.Print("Подтвердите выход y/n ")
 	fmt.Scan(&confirm)
 	if confirm == "y" {
 		os.Exit(0)
@@ -173,9 +173,9 @@ func CreateUser(cm *ClientManager) {
 	var lgn string
 	var psw string
 
-	fmt.Println("Регистрируем пользователя. Введите логин:")
+	fmt.Print("Регистрируем пользователя. Введите логин: ")
 	fmt.Scan(&lgn)
-	fmt.Println("Введите пароль:")
+	fmt.Print("Введите пароль: ")
 	fmt.Scan(&psw)
 	cm.Lgn = lgn
 	cm.Psw = psw
@@ -194,9 +194,9 @@ func LoginUser(cm *ClientManager) {
 	var lgn string
 	var psw string
 
-	fmt.Println("Проводим аутентификацию. Введите логин:")
+	fmt.Print("Проводим аутентификацию. Введите логин: ")
 	fmt.Scan(&lgn)
-	fmt.Println("Введите пароль:")
+	fmt.Print("Введите пароль: ")
 	fmt.Scan(&psw)
 	cm.Lgn = lgn
 	cm.Psw = psw
@@ -217,9 +217,9 @@ func SaveRawData(cm *ClientManager) {
 	var name string
 	var data string
 
-	fmt.Println("Добавляем сырые данные, строка. Введите имя в хранилище:")
+	fmt.Print("Добавляем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите сохраняемую строку:")
+	fmt.Print("Введите сохраняемую строку: ")
 	fmt.Scan(&data)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -234,7 +234,7 @@ func SaveRawData(cm *ClientManager) {
 // GetRawData получение текстовой информации по названию для авторизованного пользователя
 func GetRawData(cm *ClientManager) {
 	var name string
-	fmt.Println("Получаем сырые данные, строка. Введите имя в хранилище:")
+	fmt.Print("Получаем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -251,11 +251,11 @@ func SaveLoginWithPassword(cm *ClientManager) {
 	var name string
 	var login string
 	var password string
-	fmt.Println("Добавляем логин, пароль. Введите имя в хранилище:")
+	fmt.Print("Добавляем логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите сохраняемый логин:")
+	fmt.Print("Введите сохраняемый логин: ")
 	fmt.Scan(&login)
-	fmt.Println("Введите сохраняемый пароль:")
+	fmt.Print("Введите сохраняемый пароль: ")
 	fmt.Scan(&password)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -270,7 +270,7 @@ func SaveLoginWithPassword(cm *ClientManager) {
 // GetLoginWithPassword получает логин и пароль по названию для авторизованного пользователя
 func GetLoginWithPassword(cm *ClientManager) {
 	var name string
-	fmt.Println("Получаем логин, пароль. Введите имя в хранилище:")
+	fmt.Print("Получаем логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -289,9 +289,9 @@ func SaveBinaryData(cm *ClientManager) {
 	var myBinary []byte
 	//myBinary := []byte("my_binary_data")
 	//name = "binData1"
-	fmt.Println("Добавляем бинарные данные. Введите имя в хранилище:")
+	fmt.Print("Добавляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите сохраняемые бинарные данные как строку:")
+	fmt.Print("Введите сохраняемые бинарные данные как строку: ")
 	fmt.Scan(&myBinaryStr)
 	myBinary = []byte(myBinaryStr)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -307,7 +307,7 @@ func SaveBinaryData(cm *ClientManager) {
 // GetBinaryData получение произвольных бинарных данных по названию для авторизованного пользователя
 func GetBinaryData(cm *ClientManager) {
 	var name string
-	fmt.Println("Получаем бинарные данные. Введите имя в хранилище:")
+	fmt.Print("Получаем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -327,15 +327,15 @@ func SaveCardData(cm *ClientManager) {
 	var year string
 	var cardHolder string
 
-	fmt.Println("Добавляем данные карты. Введите имя в хранилище:")
+	fmt.Println("Добавляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите номер карты:")
+	fmt.Print("Введите номер карты: ")
 	fmt.Scan(&number)
-	fmt.Println("Введите месяц выдачи карты:")
+	fmt.Print("Введите месяц выдачи карты: ")
 	fmt.Scan(&month)
-	fmt.Println("Введите год выдачи карты:")
+	fmt.Print("Введите год выдачи карты: ")
 	fmt.Scan(&year)
-	fmt.Println("Введите держателя карты:")
+	fmt.Print("Введите держателя карты: ")
 	fmt.Scan(&cardHolder)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -351,7 +351,7 @@ func SaveCardData(cm *ClientManager) {
 func GetCardData(cm *ClientManager) {
 	var name string
 
-	fmt.Println("Получаем данные карты. Введите имя в хранилище:")
+	fmt.Print("Получаем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -381,7 +381,7 @@ func GetAllSavedDataNames(cm *ClientManager) {
 // DelRawData удаляет сырые данные
 func DelRawData(cm *ClientManager) {
 	var name string
-	fmt.Println("Удаляем сырые данные. Введите имя в хранилище:")
+	fmt.Print("Удаляем сырые данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -396,7 +396,7 @@ func DelRawData(cm *ClientManager) {
 // DelLoginWithPassword удаляет данные логин, пароль
 func DelLoginWithPassword(cm *ClientManager) {
 	var name string
-	fmt.Println("Удаляем данные логин, пароль. Введите имя в хранилище:")
+	fmt.Print("Удаляем данные логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -411,7 +411,7 @@ func DelLoginWithPassword(cm *ClientManager) {
 // DelBinaryData удаляет бинарные данные
 func DelBinaryData(cm *ClientManager) {
 	var name string
-	fmt.Println("Удаляем бинарные данные. Введите имя в хранилище:")
+	fmt.Print("Удаляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -426,7 +426,7 @@ func DelBinaryData(cm *ClientManager) {
 // DelCardData удаляет данные карты
 func DelCardData(cm *ClientManager) {
 	var name string
-	fmt.Println("Удаляем данные карты. Введите имя в хранилище:")
+	fmt.Print("Удаляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -443,9 +443,9 @@ func UpdRawData(cm *ClientManager) {
 	var name string
 	var data string
 
-	fmt.Println("Обновляем сырые данные, строка. Введите имя в хранилище:")
+	fmt.Print("Обновляем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите сохраняемую строку:")
+	fmt.Print("Введите сохраняемую строку: ")
 	fmt.Scan(&data)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -462,11 +462,11 @@ func UpdLoginWithPassword(cm *ClientManager) {
 	var name string
 	var login string
 	var password string
-	fmt.Println("Обновляем логин, пароль. Введите имя в хранилище:")
+	fmt.Print("Обновляем логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите сохраняемый логин:")
+	fmt.Print("Введите сохраняемый логин: ")
 	fmt.Scan(&login)
-	fmt.Println("Введите сохраняемый пароль:")
+	fmt.Print("Введите сохраняемый пароль: ")
 	fmt.Scan(&password)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -485,9 +485,9 @@ func UpdBinaryData(cm *ClientManager) {
 	var myBinary []byte
 	//myBinary := []byte("my_binary_data")
 	//name = "binData1"
-	fmt.Println("Обновляем бинарные данные. Введите имя в хранилище:")
+	fmt.Print("Обновляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите сохраняемые бинарные данные как строку:")
+	fmt.Print("Введите сохраняемые бинарные данные как строку: ")
 	fmt.Scan(&myBinaryStr)
 	myBinary = []byte(myBinaryStr)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -508,15 +508,15 @@ func UpdCardData(cm *ClientManager) {
 	var year string
 	var cardHolder string
 
-	fmt.Println("Обновляем данные карты. Введите имя в хранилище:")
+	fmt.Print("Обновляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Println("Введите номер карты:")
+	fmt.Print("Введите номер карты: ")
 	fmt.Scan(&number)
-	fmt.Println("Введите месяц выдачи карты:")
+	fmt.Print("Введите месяц выдачи карты: ")
 	fmt.Scan(&month)
-	fmt.Println("Введите год выдачи карты:")
+	fmt.Print("Введите год выдачи карты: ")
 	fmt.Scan(&year)
-	fmt.Println("Введите держателя карты:")
+	fmt.Print("Введите держателя карты: ")
 	fmt.Scan(&cardHolder)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

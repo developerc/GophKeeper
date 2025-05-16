@@ -404,5 +404,4 @@ func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userSer
 		settings.Logger.Info("Init gRPC service", zap.String("error", err.Error()))
 		return
 	}
-
 }

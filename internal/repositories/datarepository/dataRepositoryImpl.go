@@ -117,10 +117,18 @@ func (r *rawDataRepositoryImpl) GetAllSavedDataNames(ctx context.Context, userID
 
 // DelDataByNameUserId удаляет запись из БД по name и userID
 func (r *rawDataRepositoryImpl) DelDataByNameUserId(ctx context.Context, name, userID string) error {
+	//var result sql.Result
 	config.ServerSettingsGlob.Logger.Info("DelDataByNameUserId", zap.String("datarepository", "delete data from db"))
-	_, err := r.db.ExecContext(ctx, delDataByNameUserId, name, userID)
+	result, err := r.db.ExecContext(ctx, delDataByNameUserId, name, userID)
 	if err != nil {
 		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("name or userID wrong")
 	}
 	return nil
 }
@@ -128,9 +136,16 @@ func (r *rawDataRepositoryImpl) DelDataByNameUserId(ctx context.Context, name, u
 // Update обновляет запись в БД по name и userID
 func (r *rawDataRepositoryImpl) Update(ctx context.Context, userID, name string, data []byte, dataType entity.DataType) error {
 	config.ServerSettingsGlob.Logger.Info("Update", zap.String("datarepository", "update data in db"))
-	_, err := r.db.ExecContext(ctx, updDataByNameUserId, data, name, userID)
+	result, err := r.db.ExecContext(ctx, updDataByNameUserId, data, name, userID)
 	if err != nil {
 		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("name or userID wrong")
 	}
 	return nil
 }
