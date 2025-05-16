@@ -113,4 +113,9 @@ service GrpcService {
   rpc DelLoginWithPassword(DelRequest) returns (ErrorResponse);
   rpc DelBinaryData(DelRequest) returns (ErrorResponse);
   rpc DelCardData(DelRequest) returns (ErrorResponse);
+
+  rpc UpdRawData(SaveRawDataRequest) returns (ErrorResponse);
+  rpc UpdLoginWithPassword(SaveLoginWithPasswordRequest) returns (ErrorResponse);
+  rpc UpdBinaryData(SaveBinaryDataRequest) returns (ErrorResponse);
+  rpc UpdCardData(SaveCardDataRequest) returns (ErrorResponse);
 }

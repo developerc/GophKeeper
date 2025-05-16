@@ -267,6 +267,7 @@ func (s *Server) DelRawData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorRe
 	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// DelLoginWithPassword удаляет данные логин, пароль
 func (s *Server) DelLoginWithPassword(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
 	config.ServerSettingsGlob.Logger.Info("DelLoginWithPassword", zap.String("server", "delete data from db"))
 	userID, err := s.jwtManager.ExtractUserID(ctx)
@@ -280,6 +281,7 @@ func (s *Server) DelLoginWithPassword(ctx context.Context, in *pb.DelRequest) (*
 	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// DelBinaryData удаляет бинарные данные
 func (s *Server) DelBinaryData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
 	config.ServerSettingsGlob.Logger.Info("DelBinaryData", zap.String("server", "delete data from db"))
 	userID, err := s.jwtManager.ExtractUserID(ctx)
@@ -293,6 +295,7 @@ func (s *Server) DelBinaryData(ctx context.Context, in *pb.DelRequest) (*pb.Erro
 	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+// DelCardData удаляет данные карты
 func (s *Server) DelCardData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorResponse, error) {
 	config.ServerSettingsGlob.Logger.Info("DelCardData", zap.String("server", "delete data from db"))
 	userID, err := s.jwtManager.ExtractUserID(ctx)
@@ -303,6 +306,73 @@ func (s *Server) DelCardData(ctx context.Context, in *pb.DelRequest) (*pb.ErrorR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+// UpdRawData обновляет сырые данные
+func (s *Server) UpdRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*pb.ErrorResponse, error) {
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+
+	err = s.storageService.UpdRawData(ctx, in.Name, in.Data, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+// UpdLoginWithPassword обновляет данные логин, пароль
+func (s *Server) UpdLoginWithPassword(ctx context.Context, in *pb.SaveLoginWithPasswordRequest) (*pb.ErrorResponse, error) {
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+
+	err = s.storageService.UpdLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+// UpdBinaryData обновляет бинарные данные
+func (s *Server) UpdBinaryData(ctx context.Context, in *pb.SaveBinaryDataRequest) (*pb.ErrorResponse, error) {
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+
+	err = s.storageService.UpdBinaryData(ctx, in.Name, in.Data, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
+// UpdCardData обновляет данные карты
+func (s *Server) UpdCardData(ctx context.Context, in *pb.SaveCardDataRequest) (*pb.ErrorResponse, error) {
+	userID, err := s.jwtManager.ExtractUserID(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+	}
+
+	card := entity.CardDataDTO{
+		Number:     in.Number,
+		Month:      in.Month,
+		Year:       in.Year,
+		CardHolder: in.CardHolder,
+	}
+
+	err = s.storageService.UpdCardData(ctx, in.Name, card, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 

@@ -26,6 +26,8 @@ const (
 		"WHERE user_id=$1"
 	delDataByNameUserId = "" +
 		"DELETE FROM public.raw_data WHERE name=$1 AND user_id=$2"
+	updDataByNameUserId = "" +
+		"UPDATE public.raw_data SET data=$1 WHERE name=$2 AND user_id=$3"
 )
 
 // RawDataRepository интерфейс репозитория данных
@@ -34,6 +36,7 @@ type RawDataRepository interface {
 	GetByNameAndTypeAndUserID(ctx context.Context, userID, name string, dataType entity.DataType) ([]byte, error)
 	GetAllSavedDataNames(ctx context.Context, userID string) ([]string, error)
 	DelDataByNameUserId(ctx context.Context, name, userID string) error
+	Update(ctx context.Context, userID, name string, data []byte, dataType entity.DataType) error
 }
 
 // rawDataRepositoryImpl структура репозитория данных
@@ -112,9 +115,20 @@ func (r *rawDataRepositoryImpl) GetAllSavedDataNames(ctx context.Context, userID
 	return nameList, nil
 }
 
+// DelDataByNameUserId удаляет запись из БД по name и userID
 func (r *rawDataRepositoryImpl) DelDataByNameUserId(ctx context.Context, name, userID string) error {
-	config.ServerSettingsGlob.Logger.Info("DelDataByNameUserId", zap.String("RawDataRepository", "delete data from db"))
+	config.ServerSettingsGlob.Logger.Info("DelDataByNameUserId", zap.String("datarepository", "delete data from db"))
 	_, err := r.db.ExecContext(ctx, delDataByNameUserId, name, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Update обновляет запись в БД по name и userID
+func (r *rawDataRepositoryImpl) Update(ctx context.Context, userID, name string, data []byte, dataType entity.DataType) error {
+	config.ServerSettingsGlob.Logger.Info("Update", zap.String("datarepository", "update data in db"))
+	_, err := r.db.ExecContext(ctx, updDataByNameUserId, data, name, userID)
 	if err != nil {
 		return err
 	}

@@ -68,7 +68,11 @@ const menu = "" +
 	"12 Удаление сырых данных\n" +
 	"13 Удаление логин, пароля\n" +
 	"14 Удаление бинарных данных\n" +
-	"15 Удаление данных карты\n"
+	"15 Удаление данных карты\n" +
+	"16 Обновление сырых данных\n" +
+	"17 Обновление данных логин, пароль\n" +
+	"18 Обновление бинарных данных\n" +
+	"19 Обновление данных карты\n"
 
 // main запускает клиента gRPC
 func main() {
@@ -141,6 +145,14 @@ func main() {
 			DelBinaryData(cm)
 		case 15:
 			DelCardData(cm)
+		case 16:
+			UpdRawData(cm)
+		case 17:
+			UpdLoginWithPassword(cm)
+		case 18:
+			UpdBinaryData(cm)
+		case 19:
+			UpdCardData(cm)
 		}
 	}
 
@@ -426,6 +438,96 @@ func DelCardData(cm *ClientManager) {
 	}
 }
 
+// UpdRawData обновляет произвольную текстовую информацию для авторизованного пользователя
+func UpdRawData(cm *ClientManager) {
+	var name string
+	var data string
+
+	fmt.Println("Обновляем сырые данные, строка. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите сохраняемую строку:")
+	fmt.Scan(&data)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.UpdRawData(ctx, name, data)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Сырые данные обновлены успешно: ", errorResponse.Error)
+	}
+}
+
+// UpdLoginWithPassword обновляет логин и пароль для авторизованного пользователя
+func UpdLoginWithPassword(cm *ClientManager) {
+	var name string
+	var login string
+	var password string
+	fmt.Println("Обновляем логин, пароль. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите сохраняемый логин:")
+	fmt.Scan(&login)
+	fmt.Println("Введите сохраняемый пароль:")
+	fmt.Scan(&password)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.UpdLoginWithPassword(ctx, name, login, password)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Логин, пароль обновлены успешно: ", errorResponse.Error)
+	}
+}
+
+// SaveBinaryData обновляет произвольных бинарных данных для авторизованного пользователя
+func UpdBinaryData(cm *ClientManager) {
+	var name string
+	var myBinaryStr string
+	var myBinary []byte
+	//myBinary := []byte("my_binary_data")
+	//name = "binData1"
+	fmt.Println("Обновляем бинарные данные. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите сохраняемые бинарные данные как строку:")
+	fmt.Scan(&myBinaryStr)
+	myBinary = []byte(myBinaryStr)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.UpdBinaryData(ctx, name, myBinary)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Бинарные данные обновлены успешно: ", errorResponse.Error)
+	}
+}
+
+// UpdCardData обновляет данных банковской карты для авторизованного пользователя
+func UpdCardData(cm *ClientManager) {
+	var name string
+	var number string
+	var month string
+	var year string
+	var cardHolder string
+
+	fmt.Println("Обновляем данные карты. Введите имя в хранилище:")
+	fmt.Scan(&name)
+	fmt.Println("Введите номер карты:")
+	fmt.Scan(&number)
+	fmt.Println("Введите месяц выдачи карты:")
+	fmt.Scan(&month)
+	fmt.Println("Введите год выдачи карты:")
+	fmt.Scan(&year)
+	fmt.Println("Введите держателя карты:")
+	fmt.Scan(&cardHolder)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errorResponse, err := cm.UpdCardData(ctx, name, number, month, year, cardHolder)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Данные карты обновлены успешно: ", errorResponse.Error)
+	}
+}
+
 // getLoginPassword получение экземпляра структуры UserClaims из JWT токена
 func getLoginPassword(tokenString, key string) (*UserClaims, error) {
 	userClaims := &UserClaims{}
@@ -669,6 +771,66 @@ func (cm *ClientManager) DelCardData(ctx context.Context, name string) (*pb.Erro
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.DelCardData(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// UpdRawData метод обновления произвольной текстовой информации для авторизованного пользователя
+func (cm *ClientManager) UpdRawData(ctx context.Context, name, data string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.UpdRawData(ctx, &pb.SaveRawDataRequest{Name: name, Data: data})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// UpdLoginWithPassword метод обновления логина и пароля для авторизованного пользователя
+func (cm *ClientManager) UpdLoginWithPassword(ctx context.Context, name, lgn, psw string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.UpdLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// UpdBinaryData метод обновления произвольных бинарных данных для авторизованного пользователя
+func (cm *ClientManager) UpdBinaryData(ctx context.Context, name string, binData []byte) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.UpdBinaryData(ctx, &pb.SaveBinaryDataRequest{Name: name, Data: binData})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+// UpdCardData метод обновления данных банковской карты для авторизованного пользователя
+func (cm *ClientManager) UpdCardData(ctx context.Context, name, number, month, year, cardHolder string) (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.UpdCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder})
 	if err != nil {
 		return nil, err
 	}

@@ -34,6 +34,10 @@ const (
 	GrpcService_DelLoginWithPassword_FullMethodName  = "/server.GrpcService/DelLoginWithPassword"
 	GrpcService_DelBinaryData_FullMethodName         = "/server.GrpcService/DelBinaryData"
 	GrpcService_DelCardData_FullMethodName           = "/server.GrpcService/DelCardData"
+	GrpcService_UpdRawData_FullMethodName            = "/server.GrpcService/UpdRawData"
+	GrpcService_UpdLoginWithPassword_FullMethodName  = "/server.GrpcService/UpdLoginWithPassword"
+	GrpcService_UpdBinaryData_FullMethodName         = "/server.GrpcService/UpdBinaryData"
+	GrpcService_UpdCardData_FullMethodName           = "/server.GrpcService/UpdCardData"
 )
 
 // GrpcServiceClient is the client API for GrpcService service.
@@ -55,6 +59,10 @@ type GrpcServiceClient interface {
 	DelLoginWithPassword(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 	DelBinaryData(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 	DelCardData(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
+	UpdRawData(ctx context.Context, in *SaveRawDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
+	UpdLoginWithPassword(ctx context.Context, in *SaveLoginWithPasswordRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
+	UpdBinaryData(ctx context.Context, in *SaveBinaryDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
+	UpdCardData(ctx context.Context, in *SaveCardDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 }
 
 type grpcServiceClient struct {
@@ -215,6 +223,46 @@ func (c *grpcServiceClient) DelCardData(ctx context.Context, in *DelRequest, opt
 	return out, nil
 }
 
+func (c *grpcServiceClient) UpdRawData(ctx context.Context, in *SaveRawDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrorResponse)
+	err := c.cc.Invoke(ctx, GrpcService_UpdRawData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *grpcServiceClient) UpdLoginWithPassword(ctx context.Context, in *SaveLoginWithPasswordRequest, opts ...grpc.CallOption) (*ErrorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrorResponse)
+	err := c.cc.Invoke(ctx, GrpcService_UpdLoginWithPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *grpcServiceClient) UpdBinaryData(ctx context.Context, in *SaveBinaryDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrorResponse)
+	err := c.cc.Invoke(ctx, GrpcService_UpdBinaryData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *grpcServiceClient) UpdCardData(ctx context.Context, in *SaveCardDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrorResponse)
+	err := c.cc.Invoke(ctx, GrpcService_UpdCardData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GrpcServiceServer is the server API for GrpcService service.
 // All implementations must embed UnimplementedGrpcServiceServer
 // for forward compatibility.
@@ -234,6 +282,10 @@ type GrpcServiceServer interface {
 	DelLoginWithPassword(context.Context, *DelRequest) (*ErrorResponse, error)
 	DelBinaryData(context.Context, *DelRequest) (*ErrorResponse, error)
 	DelCardData(context.Context, *DelRequest) (*ErrorResponse, error)
+	UpdRawData(context.Context, *SaveRawDataRequest) (*ErrorResponse, error)
+	UpdLoginWithPassword(context.Context, *SaveLoginWithPasswordRequest) (*ErrorResponse, error)
+	UpdBinaryData(context.Context, *SaveBinaryDataRequest) (*ErrorResponse, error)
+	UpdCardData(context.Context, *SaveCardDataRequest) (*ErrorResponse, error)
 	mustEmbedUnimplementedGrpcServiceServer()
 }
 
@@ -288,6 +340,18 @@ func (UnimplementedGrpcServiceServer) DelBinaryData(context.Context, *DelRequest
 }
 func (UnimplementedGrpcServiceServer) DelCardData(context.Context, *DelRequest) (*ErrorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelCardData not implemented")
+}
+func (UnimplementedGrpcServiceServer) UpdRawData(context.Context, *SaveRawDataRequest) (*ErrorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdRawData not implemented")
+}
+func (UnimplementedGrpcServiceServer) UpdLoginWithPassword(context.Context, *SaveLoginWithPasswordRequest) (*ErrorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdLoginWithPassword not implemented")
+}
+func (UnimplementedGrpcServiceServer) UpdBinaryData(context.Context, *SaveBinaryDataRequest) (*ErrorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdBinaryData not implemented")
+}
+func (UnimplementedGrpcServiceServer) UpdCardData(context.Context, *SaveCardDataRequest) (*ErrorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdCardData not implemented")
 }
 func (UnimplementedGrpcServiceServer) mustEmbedUnimplementedGrpcServiceServer() {}
 func (UnimplementedGrpcServiceServer) testEmbeddedByValue()                     {}
@@ -580,6 +644,78 @@ func _GrpcService_DelCardData_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GrpcService_UpdRawData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveRawDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GrpcServiceServer).UpdRawData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GrpcService_UpdRawData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GrpcServiceServer).UpdRawData(ctx, req.(*SaveRawDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GrpcService_UpdLoginWithPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveLoginWithPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GrpcServiceServer).UpdLoginWithPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GrpcService_UpdLoginWithPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GrpcServiceServer).UpdLoginWithPassword(ctx, req.(*SaveLoginWithPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GrpcService_UpdBinaryData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveBinaryDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GrpcServiceServer).UpdBinaryData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GrpcService_UpdBinaryData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GrpcServiceServer).UpdBinaryData(ctx, req.(*SaveBinaryDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GrpcService_UpdCardData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveCardDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GrpcServiceServer).UpdCardData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GrpcService_UpdCardData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GrpcServiceServer).UpdCardData(ctx, req.(*SaveCardDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GrpcService_ServiceDesc is the grpc.ServiceDesc for GrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -646,6 +782,22 @@ var GrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelCardData",
 			Handler:    _GrpcService_DelCardData_Handler,
+		},
+		{
+			MethodName: "UpdRawData",
+			Handler:    _GrpcService_UpdRawData_Handler,
+		},
+		{
+			MethodName: "UpdLoginWithPassword",
+			Handler:    _GrpcService_UpdLoginWithPassword_Handler,
+		},
+		{
+			MethodName: "UpdBinaryData",
+			Handler:    _GrpcService_UpdBinaryData_Handler,
+		},
+		{
+			MethodName: "UpdCardData",
+			Handler:    _GrpcService_UpdCardData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

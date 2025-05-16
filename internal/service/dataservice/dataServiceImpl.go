@@ -28,6 +28,11 @@ type StorageService interface {
 	GetAllSavedDataNames(ctx context.Context, userID string) ([]string, error)
 
 	DelDataByNameUserId(ctx context.Context, name, userID string) error
+
+	UpdRawData(ctx context.Context, name, data, userID string) error
+	UpdLoginWithPassword(ctx context.Context, name, login, password, userID string) error
+	UpdBinaryData(ctx context.Context, name string, data []byte, userID string) error
+	UpdCardData(ctx context.Context, name string, cardData entity.CardDataDTO, userID string) error
 }
 
 // StorageService экземпляр сервиса хранилища
@@ -136,9 +141,50 @@ func (s storageServiceImpl) GetAllSavedDataNames(ctx context.Context, userID str
 	return s.rawDataRepository.GetAllSavedDataNames(ctx, userID)
 }
 
+// DelDataByNameUserId метод для удаления записи по name и userID
 func (s storageServiceImpl) DelDataByNameUserId(ctx context.Context, name, userID string) error {
 	config.ServerSettingsGlob.Logger.Info("DelDataByNameUserId", zap.String("storageServiceImpl", "delete data from db"))
 	return s.rawDataRepository.DelDataByNameUserId(ctx, name, userID)
+}
+
+// SaveRawData метод для обновления произвольных текстовых данных
+func (s storageServiceImpl) UpdRawData(ctx context.Context, name, data, userID string) error {
+	config.ServerSettingsGlob.Logger.Info("UpdRawData", zap.String("dataservice", "update raw data"))
+	//return s.encryptAndSaveData(ctx, name, userID, []byte(data), entity.RAW)
+	return s.encryptAndUpdateData(ctx, name, userID, []byte(data), entity.RAW)
+}
+
+// UpdLoginWithPassword метод для обновления логина и пароля
+func (s storageServiceImpl) UpdLoginWithPassword(ctx context.Context, name, login, password, userID string) error {
+	config.ServerSettingsGlob.Logger.Info("UpdLoginWithPassword", zap.String("dataservice", "update login with password"))
+	cred := entity.CredentialsDTO{
+		Login:    login,
+		Password: password,
+	}
+
+	marshalledCred, err := json.Marshal(cred)
+	if err != nil {
+		return err
+	}
+	return s.encryptAndUpdateData(ctx, name, userID, marshalledCred, entity.CRED)
+}
+
+// UpdBinaryData метод для обновления бинарных данных
+func (s storageServiceImpl) UpdBinaryData(ctx context.Context, name string, data []byte, userID string) error {
+	config.ServerSettingsGlob.Logger.Info("UpdBinaryData", zap.String("dataservice", "update binary data"))
+	return s.encryptAndUpdateData(ctx, name, userID, data, entity.FILE)
+}
+
+// UpdCardData метод для обновления данных банковской карты
+func (s storageServiceImpl) UpdCardData(ctx context.Context, name string, cardData entity.CardDataDTO, userID string) error {
+	config.ServerSettingsGlob.Logger.Info("UpdCardData", zap.String("dataservice", "update card data"))
+
+	marshalledCardData, err := json.Marshal(cardData)
+	if err != nil {
+		return err
+	}
+
+	return s.encryptAndUpdateData(ctx, name, userID, marshalledCardData, entity.CARD)
 }
 
 func (s storageServiceImpl) encryptAndSaveData(
@@ -152,6 +198,20 @@ func (s storageServiceImpl) encryptAndSaveData(
 		return err
 	}
 	return s.rawDataRepository.Save(ctx, userID, name, savedData, dataType)
+}
+
+func (s storageServiceImpl) encryptAndUpdateData(
+	ctx context.Context,
+	name, userID string,
+	data []byte,
+	dataType entity.DataType) error {
+
+	savedData, err := s.cipherManager.Encrypt(data)
+	if err != nil {
+		return err
+	}
+	//return s.rawDataRepository.Save(ctx, userID, name, savedData, dataType)
+	return s.rawDataRepository.Update(ctx, userID, name, savedData, dataType)
 }
 
 func (s storageServiceImpl) getAndDecryptData(
