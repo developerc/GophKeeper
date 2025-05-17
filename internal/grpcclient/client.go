@@ -290,16 +290,22 @@ func GetLoginWithPassword(cm *ClientManager) {
 // SaveBinaryData сохранение произвольных бинарных данных для авторизованного пользователя
 func SaveBinaryData(cm *ClientManager) {
 	var name string
-	var myBinaryStr string
+	var filePath string
 	var myBinary []byte
 	var comment string
 	fmt.Print("Добавляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Print("Введите сохраняемые бинарные данные как строку: ")
-	fmt.Scan(&myBinaryStr)
+	fmt.Print("Введите полный путь к файлу: ")
+	fmt.Scan(&filePath)
 	fmt.Print("Введите комментарий: ")
 	fmt.Scan(&comment)
-	myBinary = []byte(myBinaryStr)
+
+	myBinary, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	errorResponse, err := cm.SaveBinaryData(ctx, name, myBinary, comment)
@@ -669,6 +675,7 @@ func (cm *ClientManager) GetLoginWithPassword(ctx context.Context, name string) 
 
 // SaveBinaryData метод сохранения произвольных бинарных данных для авторизованного пользователя
 func (cm *ClientManager) SaveBinaryData(ctx context.Context, name string, binData []byte, comment string) (*pb.ErrorResponse, error) {
+	//return nil, nil
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
