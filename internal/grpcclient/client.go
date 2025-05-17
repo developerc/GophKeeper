@@ -94,8 +94,7 @@ func main() {
 	var choice int
 	cm, err := NewClientManager()
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	// создадим клиент grpc //с перехватчиком
@@ -216,14 +215,17 @@ func LoginUser(cm *ClientManager) {
 func SaveRawData(cm *ClientManager) {
 	var name string
 	var data string
+	var comment string
 
 	fmt.Print("Добавляем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемую строку: ")
 	fmt.Scan(&data)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.SaveRawData(ctx, name, data)
+	errorResponse, err := cm.SaveRawData(ctx, name, data, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -242,7 +244,7 @@ func GetRawData(cm *ClientManager) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Println("Получены сырые данные: ", getRawDataResponse.Data)
+		log.Printf("Получены сырые данные %s, комментарий %s\n", getRawDataResponse.Data, getRawDataResponse.Comment)
 	}
 }
 
@@ -251,15 +253,18 @@ func SaveLoginWithPassword(cm *ClientManager) {
 	var name string
 	var login string
 	var password string
+	var comment string
 	fmt.Print("Добавляем логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемый логин: ")
 	fmt.Scan(&login)
 	fmt.Print("Введите сохраняемый пароль: ")
 	fmt.Scan(&password)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.SaveLoginWithPassword(ctx, name, login, password)
+	errorResponse, err := cm.SaveLoginWithPassword(ctx, name, login, password, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -278,7 +283,7 @@ func GetLoginWithPassword(cm *ClientManager) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Println("Получены логин, пароль: ", getLoginWithPasswordResponse.Login, getLoginWithPasswordResponse.Password)
+		log.Printf("Получены логин %s, пароль %s, комментарий %s\n", getLoginWithPasswordResponse.Login, getLoginWithPasswordResponse.Password, getLoginWithPasswordResponse.Comment)
 	}
 }
 
@@ -287,16 +292,17 @@ func SaveBinaryData(cm *ClientManager) {
 	var name string
 	var myBinaryStr string
 	var myBinary []byte
-	//myBinary := []byte("my_binary_data")
-	//name = "binData1"
+	var comment string
 	fmt.Print("Добавляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемые бинарные данные как строку: ")
 	fmt.Scan(&myBinaryStr)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	myBinary = []byte(myBinaryStr)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.SaveBinaryData(ctx, name, myBinary)
+	errorResponse, err := cm.SaveBinaryData(ctx, name, myBinary, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -315,7 +321,7 @@ func GetBinaryData(cm *ClientManager) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Println("Получены бинарные данные, строка: ", string(getBinaryDataResponse.Data))
+		log.Printf("Получены бинарные данные строка %s, комментарий %s\n", string(getBinaryDataResponse.Data), getBinaryDataResponse.Comment)
 	}
 }
 
@@ -326,6 +332,8 @@ func SaveCardData(cm *ClientManager) {
 	var month string
 	var year string
 	var cardHolder string
+	var cvv string
+	var comment string
 
 	fmt.Println("Добавляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
@@ -337,9 +345,13 @@ func SaveCardData(cm *ClientManager) {
 	fmt.Scan(&year)
 	fmt.Print("Введите держателя карты: ")
 	fmt.Scan(&cardHolder)
+	fmt.Print("Введите CVV карты: ")
+	fmt.Scan(&cvv)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.SaveCardData(ctx, name, number, month, year, cardHolder)
+	errorResponse, err := cm.SaveCardData(ctx, name, number, month, year, cardHolder, cvv, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -359,7 +371,7 @@ func GetCardData(cm *ClientManager) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Printf("Получены данные карты: номер %s, месяц %s, год %s, держатель карты %s\n", getCardDataResponse.Number, getCardDataResponse.Month, getCardDataResponse.Year, getCardDataResponse.CardHolder)
+		log.Printf("Получены данные карты: номер %s, месяц %s, год %s, держатель карты %s, CVV %s, комментарий %s\n", getCardDataResponse.Number, getCardDataResponse.Month, getCardDataResponse.Year, getCardDataResponse.CardHolder, getCardDataResponse.Cvv, getCardDataResponse.Comment)
 	}
 }
 
@@ -442,14 +454,17 @@ func DelCardData(cm *ClientManager) {
 func UpdRawData(cm *ClientManager) {
 	var name string
 	var data string
+	var comment string
 
 	fmt.Print("Обновляем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемую строку: ")
 	fmt.Scan(&data)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.UpdRawData(ctx, name, data)
+	errorResponse, err := cm.UpdRawData(ctx, name, data, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -462,15 +477,18 @@ func UpdLoginWithPassword(cm *ClientManager) {
 	var name string
 	var login string
 	var password string
+	var comment string
 	fmt.Print("Обновляем логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемый логин: ")
 	fmt.Scan(&login)
 	fmt.Print("Введите сохраняемый пароль: ")
 	fmt.Scan(&password)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.UpdLoginWithPassword(ctx, name, login, password)
+	errorResponse, err := cm.UpdLoginWithPassword(ctx, name, login, password, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -483,16 +501,17 @@ func UpdBinaryData(cm *ClientManager) {
 	var name string
 	var myBinaryStr string
 	var myBinary []byte
-	//myBinary := []byte("my_binary_data")
-	//name = "binData1"
+	var comment string
 	fmt.Print("Обновляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемые бинарные данные как строку: ")
 	fmt.Scan(&myBinaryStr)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	myBinary = []byte(myBinaryStr)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.UpdBinaryData(ctx, name, myBinary)
+	errorResponse, err := cm.UpdBinaryData(ctx, name, myBinary, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -507,6 +526,8 @@ func UpdCardData(cm *ClientManager) {
 	var month string
 	var year string
 	var cardHolder string
+	var cvv string
+	var comment string
 
 	fmt.Print("Обновляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
@@ -518,9 +539,13 @@ func UpdCardData(cm *ClientManager) {
 	fmt.Scan(&year)
 	fmt.Print("Введите держателя карты: ")
 	fmt.Scan(&cardHolder)
+	fmt.Print("Введите CVV карты: ")
+	fmt.Scan(&cvv)
+	fmt.Print("Введите комментарий: ")
+	fmt.Scan(&comment)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	errorResponse, err := cm.UpdCardData(ctx, name, number, month, year, cardHolder)
+	errorResponse, err := cm.UpdCardData(ctx, name, number, month, year, cardHolder, cvv, comment)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -583,14 +608,14 @@ func (cm *ClientManager) LoginUser(ctx context.Context) error {
 }
 
 // SaveRawData метод сохранения произвольной текстовой информации для авторизованного пользователя
-func (cm *ClientManager) SaveRawData(ctx context.Context, name, data string) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) SaveRawData(ctx context.Context, name, data, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.SaveRawData(ctx, &pb.SaveRawDataRequest{Name: name, Data: data})
+	errorResponse, err := cm.GrpcClient.SaveRawData(ctx, &pb.SaveRawDataRequest{Name: name, Data: data, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -613,14 +638,14 @@ func (cm *ClientManager) GetRawData(ctx context.Context, name string) (*pb.GetRa
 }
 
 // SaveLoginWithPassword метод сохранения логина и пароля для авторизованного пользователя
-func (cm *ClientManager) SaveLoginWithPassword(ctx context.Context, name, lgn, psw string) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) SaveLoginWithPassword(ctx context.Context, name, lgn, psw, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.SaveLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw})
+	errorResponse, err := cm.GrpcClient.SaveLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -643,14 +668,14 @@ func (cm *ClientManager) GetLoginWithPassword(ctx context.Context, name string) 
 }
 
 // SaveBinaryData метод сохранения произвольных бинарных данных для авторизованного пользователя
-func (cm *ClientManager) SaveBinaryData(ctx context.Context, name string, binData []byte) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) SaveBinaryData(ctx context.Context, name string, binData []byte, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.SaveBinaryData(ctx, &pb.SaveBinaryDataRequest{Name: name, Data: binData})
+	errorResponse, err := cm.GrpcClient.SaveBinaryData(ctx, &pb.SaveBinaryDataRequest{Name: name, Data: binData, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -673,14 +698,14 @@ func (cm *ClientManager) GetBinaryData(ctx context.Context, name string) (*pb.Ge
 }
 
 // SaveCardData метод сохранения данных банковской карты для авторизованного пользователя
-func (cm *ClientManager) SaveCardData(ctx context.Context, name, number, month, year, cardHolder string) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) SaveCardData(ctx context.Context, name, number, month, year, cardHolder, cvv, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.SaveCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder})
+	errorResponse, err := cm.GrpcClient.SaveCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder, Cvv: cvv, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -778,14 +803,14 @@ func (cm *ClientManager) DelCardData(ctx context.Context, name string) (*pb.Erro
 }
 
 // UpdRawData метод обновления произвольной текстовой информации для авторизованного пользователя
-func (cm *ClientManager) UpdRawData(ctx context.Context, name, data string) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) UpdRawData(ctx context.Context, name, data, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.UpdRawData(ctx, &pb.SaveRawDataRequest{Name: name, Data: data})
+	errorResponse, err := cm.GrpcClient.UpdRawData(ctx, &pb.SaveRawDataRequest{Name: name, Data: data, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -793,14 +818,14 @@ func (cm *ClientManager) UpdRawData(ctx context.Context, name, data string) (*pb
 }
 
 // UpdLoginWithPassword метод обновления логина и пароля для авторизованного пользователя
-func (cm *ClientManager) UpdLoginWithPassword(ctx context.Context, name, lgn, psw string) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) UpdLoginWithPassword(ctx context.Context, name, lgn, psw, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.UpdLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw})
+	errorResponse, err := cm.GrpcClient.UpdLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -808,14 +833,14 @@ func (cm *ClientManager) UpdLoginWithPassword(ctx context.Context, name, lgn, ps
 }
 
 // UpdBinaryData метод обновления произвольных бинарных данных для авторизованного пользователя
-func (cm *ClientManager) UpdBinaryData(ctx context.Context, name string, binData []byte) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) UpdBinaryData(ctx context.Context, name string, binData []byte, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.UpdBinaryData(ctx, &pb.SaveBinaryDataRequest{Name: name, Data: binData})
+	errorResponse, err := cm.GrpcClient.UpdBinaryData(ctx, &pb.SaveBinaryDataRequest{Name: name, Data: binData, Comment: comment})
 	if err != nil {
 		return nil, err
 	}
@@ -823,14 +848,14 @@ func (cm *ClientManager) UpdBinaryData(ctx context.Context, name string, binData
 }
 
 // UpdCardData метод обновления данных банковской карты для авторизованного пользователя
-func (cm *ClientManager) UpdCardData(ctx context.Context, name, number, month, year, cardHolder string) (*pb.ErrorResponse, error) {
+func (cm *ClientManager) UpdCardData(ctx context.Context, name, number, month, year, cardHolder, cvv, comment string) (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
 	}
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
-	errorResponse, err := cm.GrpcClient.UpdCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder})
+	errorResponse, err := cm.GrpcClient.UpdCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder, Cvv: cvv, Comment: comment})
 	if err != nil {
 		return nil, err
 	}

@@ -85,8 +85,8 @@ func (s *Server) SaveRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*p
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
-	err = s.storageService.SaveRawData(ctx, in.Name, in.Data, userID)
+	//fmt.Println("Comment: ", in.Comment)
+	err = s.storageService.SaveRawData(ctx, in.Name, in.Data, userID, in.Comment)
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
@@ -104,8 +104,8 @@ func (s *Server) SaveLoginWithPassword(ctx context.Context, in *pb.SaveLoginWith
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
-	err = s.storageService.SaveLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID)
+	//fmt.Println("Comment: ", in.Comment)
+	err = s.storageService.SaveLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID, in.Comment)
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
@@ -123,8 +123,8 @@ func (s *Server) SaveBinaryData(ctx context.Context, in *pb.SaveBinaryDataReques
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
-	err = s.storageService.SaveBinaryData(ctx, in.Name, in.Data, userID)
+	//fmt.Println("Comment: ", in.Comment)
+	err = s.storageService.SaveBinaryData(ctx, in.Name, in.Data, userID, in.Comment)
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
@@ -142,15 +142,17 @@ func (s *Server) SaveCardData(ctx context.Context, in *pb.SaveCardDataRequest) (
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
+	//fmt.Println("Comment: ", in.Comment)
 
 	card := entity.CardDataDTO{
 		Number:     in.Number,
 		Month:      in.Month,
 		Year:       in.Year,
 		CardHolder: in.CardHolder,
+		Cvv:        in.Cvv,
 	}
 
-	err = s.storageService.SaveCardData(ctx, in.Name, card, userID)
+	err = s.storageService.SaveCardData(ctx, in.Name, card, userID, in.Comment)
 	if err != nil {
 		var dv *myerrors.DataViolationError
 		if errors.As(err, &dv) {
@@ -169,7 +171,7 @@ func (s *Server) GetRawData(ctx context.Context, in *pb.GetRawDataRequest) (*pb.
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
-	data, err := s.storageService.GetRawData(ctx, in.Name, userID)
+	data, comment, err := s.storageService.GetRawData(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
@@ -177,8 +179,9 @@ func (s *Server) GetRawData(ctx context.Context, in *pb.GetRawDataRequest) (*pb.
 		}
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
+	//fmt.Println(comment)
 
-	return &pb.GetRawDataResponse{Data: data}, nil
+	return &pb.GetRawDataResponse{Data: data, Comment: comment}, nil
 }
 
 // GetLoginWithPassword эндпойнт получения логина и пароля по названию для авторизованного пользователя
@@ -188,7 +191,7 @@ func (s *Server) GetLoginWithPassword(ctx context.Context, in *pb.GetLoginWithPa
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
-	data, err := s.storageService.GetLoginWithPassword(ctx, in.Name, userID)
+	data, comment, err := s.storageService.GetLoginWithPassword(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
@@ -196,8 +199,9 @@ func (s *Server) GetLoginWithPassword(ctx context.Context, in *pb.GetLoginWithPa
 		}
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
+	//fmt.Println(comment)
 
-	return &pb.GetLoginWithPasswordResponse{Login: data.Login, Password: data.Password}, nil
+	return &pb.GetLoginWithPasswordResponse{Login: data.Login, Password: data.Password, Comment: comment}, nil
 }
 
 // GetBinaryData эндпойнт получения произвольных бинарных данных по названию для авторизованного пользователя
@@ -207,7 +211,7 @@ func (s *Server) GetBinaryData(ctx context.Context, in *pb.GetBinaryDataRequest)
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
-	data, err := s.storageService.GetBinaryData(ctx, in.Name, userID)
+	data, comment, err := s.storageService.GetBinaryData(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
@@ -215,8 +219,9 @@ func (s *Server) GetBinaryData(ctx context.Context, in *pb.GetBinaryDataRequest)
 		}
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
+	//fmt.Println(comment)
 
-	return &pb.GetBinaryDataResponse{Data: data}, nil
+	return &pb.GetBinaryDataResponse{Data: data, Comment: comment}, nil
 }
 
 // GetCardData эндпойнт получения данных банковской карты по названию для авторизованного пользователя
@@ -226,7 +231,7 @@ func (s *Server) GetCardData(ctx context.Context, in *pb.GetCardDataRequest) (*p
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
 
-	data, err := s.storageService.GetCardData(ctx, in.Name, userID)
+	data, comment, err := s.storageService.GetCardData(ctx, in.Name, userID)
 	if err != nil {
 		var nf *myerrors.NotFoundError
 		if errors.As(err, &nf) {
@@ -234,8 +239,9 @@ func (s *Server) GetCardData(ctx context.Context, in *pb.GetCardDataRequest) (*p
 		}
 		return nil, status.Errorf(codes.Internal, "%s", err.Error())
 	}
+	//fmt.Println(comment)
 
-	return &pb.GetCardDataResponse{Number: data.Number, Month: data.Month, Year: data.Year, CardHolder: data.CardHolder}, nil
+	return &pb.GetCardDataResponse{Number: data.Number, Month: data.Month, Year: data.Year, CardHolder: data.CardHolder, Cvv: data.Cvv, Comment: comment}, nil
 }
 
 // GetAllSavedDataNames метод для получения всех названий сохранений
@@ -315,8 +321,8 @@ func (s *Server) UpdRawData(ctx context.Context, in *pb.SaveRawDataRequest) (*pb
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
-	err = s.storageService.UpdRawData(ctx, in.Name, in.Data, userID)
+	//fmt.Println("Comment: ", in.Comment)
+	err = s.storageService.UpdRawData(ctx, in.Name, in.Data, userID, in.Comment)
 	if err != nil {
 		return nil, err
 	}
@@ -330,8 +336,8 @@ func (s *Server) UpdLoginWithPassword(ctx context.Context, in *pb.SaveLoginWithP
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
-	err = s.storageService.UpdLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID)
+	//fmt.Println("Comment: ", in.Comment)
+	err = s.storageService.UpdLoginWithPassword(ctx, in.Name, in.Login, in.Password, userID, in.Comment)
 	if err != nil {
 		return nil, err
 	}
@@ -345,8 +351,8 @@ func (s *Server) UpdBinaryData(ctx context.Context, in *pb.SaveBinaryDataRequest
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
-	err = s.storageService.UpdBinaryData(ctx, in.Name, in.Data, userID)
+	//fmt.Println("Comment: ", in.Comment)
+	err = s.storageService.UpdBinaryData(ctx, in.Name, in.Data, userID, in.Comment)
 	if err != nil {
 		return nil, err
 	}
@@ -360,15 +366,16 @@ func (s *Server) UpdCardData(ctx context.Context, in *pb.SaveCardDataRequest) (*
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 	}
-
+	//fmt.Println("Comment: ", in.Comment)
 	card := entity.CardDataDTO{
 		Number:     in.Number,
 		Month:      in.Month,
 		Year:       in.Year,
 		CardHolder: in.CardHolder,
+		Cvv:        in.Cvv,
 	}
 
-	err = s.storageService.UpdCardData(ctx, in.Name, card, userID)
+	err = s.storageService.UpdCardData(ctx, in.Name, card, userID, in.Comment)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"log"
 	"os"
 	"testing"
@@ -60,7 +61,8 @@ func TestClient(t *testing.T) {
 	t.Run("#3_SaveRawDataTest", func(t *testing.T) {
 		name := "RawData1"
 		myData := "my_Raw_Data"
-		errorResponse, err := cm.SaveRawData(ctx, name, myData)
+		comment := "my_Comment"
+		errorResponse, err := cm.SaveRawData(ctx, name, myData, comment)
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -82,7 +84,8 @@ func TestClient(t *testing.T) {
 		name := "LgnPsw1"
 		login := "myLogin1"
 		password := "myPassword1"
-		errorResponse, err := cm.SaveLoginWithPassword(ctx, name, login, password)
+		comment := "my_comment"
+		errorResponse, err := cm.SaveLoginWithPassword(ctx, name, login, password, comment)
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -103,7 +106,8 @@ func TestClient(t *testing.T) {
 	t.Run("#7_SaveBinaryTest", func(t *testing.T) {
 		myBinary := []byte("my_binary_data")
 		name := "binData1"
-		errorResponse, err := cm.SaveBinaryData(ctx, name, myBinary)
+		comment := "my_comment"
+		errorResponse, err := cm.SaveBinaryData(ctx, name, myBinary, comment)
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -127,7 +131,9 @@ func TestClient(t *testing.T) {
 		month := "May"
 		year := "2025"
 		cardHolder := "МИР"
-		errorResponse, err := cm.SaveCardData(ctx, name, number, month, year, cardHolder)
+		cvv := "123"
+		comment := "my_comment"
+		errorResponse, err := cm.SaveCardData(ctx, name, number, month, year, cardHolder, cvv, comment)
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -141,7 +147,7 @@ func TestClient(t *testing.T) {
 		if err != nil {
 			log.Println(err)
 		} else {
-			log.Printf("Получены данные карты: номер %s, месяц %s, год %s, держатель карты %s\n", getCardDataResponse.Number, getCardDataResponse.Month, getCardDataResponse.Year, getCardDataResponse.CardHolder)
+			log.Printf("Получены данные карты: номер %s, месяц %s, год %s, держатель карты %s, CVV %s\n", getCardDataResponse.Number, getCardDataResponse.Month, getCardDataResponse.Year, getCardDataResponse.CardHolder, getCardDataResponse.Cvv)
 		}
 	})
 

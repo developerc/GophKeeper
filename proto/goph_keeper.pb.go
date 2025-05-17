@@ -217,6 +217,7 @@ type SaveRawDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
 	Data          string                 `protobuf:"bytes,2,opt,name=Data,proto3" json:"Data,omitempty"`
+	Comment       string                 `protobuf:"bytes,3,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -265,11 +266,19 @@ func (x *SaveRawDataRequest) GetData() string {
 	return ""
 }
 
+func (x *SaveRawDataRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 type SaveLoginWithPasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
 	Login         string                 `protobuf:"bytes,2,opt,name=Login,proto3" json:"Login,omitempty"`
 	Password      string                 `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"`
+	Comment       string                 `protobuf:"bytes,4,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -325,10 +334,18 @@ func (x *SaveLoginWithPasswordRequest) GetPassword() string {
 	return ""
 }
 
+func (x *SaveLoginWithPasswordRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 type SaveBinaryDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
 	Data          []byte                 `protobuf:"bytes,2,opt,name=Data,proto3" json:"Data,omitempty"`
+	Comment       string                 `protobuf:"bytes,3,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -377,6 +394,13 @@ func (x *SaveBinaryDataRequest) GetData() []byte {
 	return nil
 }
 
+func (x *SaveBinaryDataRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 type SaveCardDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
@@ -384,6 +408,8 @@ type SaveCardDataRequest struct {
 	Month         string                 `protobuf:"bytes,3,opt,name=Month,proto3" json:"Month,omitempty"`
 	Year          string                 `protobuf:"bytes,4,opt,name=Year,proto3" json:"Year,omitempty"`
 	CardHolder    string                 `protobuf:"bytes,5,opt,name=CardHolder,proto3" json:"CardHolder,omitempty"`
+	Cvv           string                 `protobuf:"bytes,6,opt,name=Cvv,proto3" json:"Cvv,omitempty"`
+	Comment       string                 `protobuf:"bytes,7,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -453,6 +479,20 @@ func (x *SaveCardDataRequest) GetCardHolder() string {
 	return ""
 }
 
+func (x *SaveCardDataRequest) GetCvv() string {
+	if x != nil {
+		return x.Cvv
+	}
+	return ""
+}
+
+func (x *SaveCardDataRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 type GetRawDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=Name,proto3" json:"Name,omitempty"`
@@ -500,6 +540,7 @@ func (x *GetRawDataRequest) GetName() string {
 type GetRawDataResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          string                 `protobuf:"bytes,1,opt,name=Data,proto3" json:"Data,omitempty"`
+	Comment       string                 `protobuf:"bytes,2,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -537,6 +578,13 @@ func (*GetRawDataResponse) Descriptor() ([]byte, []int) {
 func (x *GetRawDataResponse) GetData() string {
 	if x != nil {
 		return x.Data
+	}
+	return ""
+}
+
+func (x *GetRawDataResponse) GetComment() string {
+	if x != nil {
+		return x.Comment
 	}
 	return ""
 }
@@ -589,6 +637,7 @@ type GetLoginWithPasswordResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Login         string                 `protobuf:"bytes,1,opt,name=Login,proto3" json:"Login,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=Password,proto3" json:"Password,omitempty"`
+	Comment       string                 `protobuf:"bytes,3,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -633,6 +682,13 @@ func (x *GetLoginWithPasswordResponse) GetLogin() string {
 func (x *GetLoginWithPasswordResponse) GetPassword() string {
 	if x != nil {
 		return x.Password
+	}
+	return ""
+}
+
+func (x *GetLoginWithPasswordResponse) GetComment() string {
+	if x != nil {
+		return x.Comment
 	}
 	return ""
 }
@@ -684,6 +740,7 @@ func (x *GetBinaryDataRequest) GetName() string {
 type GetBinaryDataResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []byte                 `protobuf:"bytes,1,opt,name=Data,proto3" json:"Data,omitempty"`
+	Comment       string                 `protobuf:"bytes,2,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -723,6 +780,13 @@ func (x *GetBinaryDataResponse) GetData() []byte {
 		return x.Data
 	}
 	return nil
+}
+
+func (x *GetBinaryDataResponse) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
 }
 
 type GetCardDataRequest struct {
@@ -775,6 +839,8 @@ type GetCardDataResponse struct {
 	Month         string                 `protobuf:"bytes,2,opt,name=Month,proto3" json:"Month,omitempty"`
 	Year          string                 `protobuf:"bytes,3,opt,name=Year,proto3" json:"Year,omitempty"`
 	CardHolder    string                 `protobuf:"bytes,4,opt,name=CardHolder,proto3" json:"CardHolder,omitempty"`
+	Cvv           string                 `protobuf:"bytes,5,opt,name=Cvv,proto3" json:"Cvv,omitempty"`
+	Comment       string                 `protobuf:"bytes,6,opt,name=Comment,proto3" json:"Comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -833,6 +899,20 @@ func (x *GetCardDataResponse) GetYear() string {
 func (x *GetCardDataResponse) GetCardHolder() string {
 	if x != nil {
 		return x.CardHolder
+	}
+	return ""
+}
+
+func (x *GetCardDataResponse) GetCvv() string {
+	if x != nil {
+		return x.Cvv
+	}
+	return ""
+}
+
+func (x *GetCardDataResponse) GetComment() string {
+	if x != nil {
+		return x.Comment
 	}
 	return ""
 }
@@ -975,17 +1055,20 @@ const file_proto_goph_keeper_proto_rawDesc = "" +
 	"\x05Login\x18\x01 \x01(\tR\x05Login\x12\x1a\n" +
 	"\bPassword\x18\x02 \x01(\tR\bPassword\"*\n" +
 	"\x12AuthorizedResponse\x12\x14\n" +
-	"\x05Token\x18\x01 \x01(\tR\x05Token\"<\n" +
+	"\x05Token\x18\x01 \x01(\tR\x05Token\"V\n" +
 	"\x12SaveRawDataRequest\x12\x12\n" +
 	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x12\n" +
-	"\x04Data\x18\x02 \x01(\tR\x04Data\"d\n" +
+	"\x04Data\x18\x02 \x01(\tR\x04Data\x12\x18\n" +
+	"\aComment\x18\x03 \x01(\tR\aComment\"~\n" +
 	"\x1cSaveLoginWithPasswordRequest\x12\x12\n" +
 	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x14\n" +
 	"\x05Login\x18\x02 \x01(\tR\x05Login\x12\x1a\n" +
-	"\bPassword\x18\x03 \x01(\tR\bPassword\"?\n" +
+	"\bPassword\x18\x03 \x01(\tR\bPassword\x12\x18\n" +
+	"\aComment\x18\x04 \x01(\tR\aComment\"Y\n" +
 	"\x15SaveBinaryDataRequest\x12\x12\n" +
 	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x12\n" +
-	"\x04Data\x18\x02 \x01(\fR\x04Data\"\x8b\x01\n" +
+	"\x04Data\x18\x02 \x01(\fR\x04Data\x12\x18\n" +
+	"\aComment\x18\x03 \x01(\tR\aComment\"\xb7\x01\n" +
 	"\x13SaveCardDataRequest\x12\x12\n" +
 	"\x04Name\x18\x01 \x01(\tR\x04Name\x12\x16\n" +
 	"\x06Number\x18\x02 \x01(\tR\x06Number\x12\x14\n" +
@@ -993,29 +1076,36 @@ const file_proto_goph_keeper_proto_rawDesc = "" +
 	"\x04Year\x18\x04 \x01(\tR\x04Year\x12\x1e\n" +
 	"\n" +
 	"CardHolder\x18\x05 \x01(\tR\n" +
-	"CardHolder\"'\n" +
+	"CardHolder\x12\x10\n" +
+	"\x03Cvv\x18\x06 \x01(\tR\x03Cvv\x12\x18\n" +
+	"\aComment\x18\a \x01(\tR\aComment\"'\n" +
 	"\x11GetRawDataRequest\x12\x12\n" +
-	"\x04Name\x18\x01 \x01(\tR\x04Name\"(\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\"B\n" +
 	"\x12GetRawDataResponse\x12\x12\n" +
-	"\x04Data\x18\x01 \x01(\tR\x04Data\"1\n" +
+	"\x04Data\x18\x01 \x01(\tR\x04Data\x12\x18\n" +
+	"\aComment\x18\x02 \x01(\tR\aComment\"1\n" +
 	"\x1bGetLoginWithPasswordRequest\x12\x12\n" +
-	"\x04Name\x18\x01 \x01(\tR\x04Name\"P\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\"j\n" +
 	"\x1cGetLoginWithPasswordResponse\x12\x14\n" +
 	"\x05Login\x18\x01 \x01(\tR\x05Login\x12\x1a\n" +
-	"\bPassword\x18\x02 \x01(\tR\bPassword\"*\n" +
+	"\bPassword\x18\x02 \x01(\tR\bPassword\x12\x18\n" +
+	"\aComment\x18\x03 \x01(\tR\aComment\"*\n" +
 	"\x14GetBinaryDataRequest\x12\x12\n" +
-	"\x04Name\x18\x01 \x01(\tR\x04Name\"+\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\"E\n" +
 	"\x15GetBinaryDataResponse\x12\x12\n" +
-	"\x04Data\x18\x01 \x01(\fR\x04Data\"(\n" +
+	"\x04Data\x18\x01 \x01(\fR\x04Data\x12\x18\n" +
+	"\aComment\x18\x02 \x01(\tR\aComment\"(\n" +
 	"\x12GetCardDataRequest\x12\x12\n" +
-	"\x04Name\x18\x01 \x01(\tR\x04Name\"w\n" +
+	"\x04Name\x18\x01 \x01(\tR\x04Name\"\xa3\x01\n" +
 	"\x13GetCardDataResponse\x12\x16\n" +
 	"\x06Number\x18\x01 \x01(\tR\x06Number\x12\x14\n" +
 	"\x05Month\x18\x02 \x01(\tR\x05Month\x12\x12\n" +
 	"\x04Year\x18\x03 \x01(\tR\x04Year\x12\x1e\n" +
 	"\n" +
 	"CardHolder\x18\x04 \x01(\tR\n" +
-	"CardHolder\"\x1d\n" +
+	"CardHolder\x12\x10\n" +
+	"\x03Cvv\x18\x05 \x01(\tR\x03Cvv\x12\x18\n" +
+	"\aComment\x18\x06 \x01(\tR\aComment\"\x1d\n" +
 	"\x1bGetAllSavedDataNamesRequest\"H\n" +
 	"\x1cGetAllSavedDataNamesResponse\x12(\n" +
 	"\x10saved_data_names\x18\x01 \x03(\tR\x0esavedDataNames\" \n" +

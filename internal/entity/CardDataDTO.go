@@ -5,4 +5,5 @@ type CardDataDTO struct {
 	Month      string `json:"month"`
 	Year       string `json:"year"`
 	CardHolder string `json:"card_holder"`
+	Cvv        string `json:"cvv"`
 }

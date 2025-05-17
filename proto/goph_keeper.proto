@@ -25,17 +25,20 @@ message AuthorizedResponse {
 message SaveRawDataRequest {
   string Name = 1;
   string Data = 2;
+  string Comment = 3;
 }
 
 message SaveLoginWithPasswordRequest {
   string Name = 1;
   string Login = 2;
   string Password = 3;
+  string Comment = 4;
 }
 
 message SaveBinaryDataRequest {
   string Name = 1;
   bytes Data = 2;
+  string Comment = 3;
 }
 
 message SaveCardDataRequest {
@@ -44,6 +47,8 @@ message SaveCardDataRequest {
   string Month = 3;
   string Year = 4;
   string CardHolder = 5;
+  string Cvv = 6;
+  string Comment = 7;
 }
 
 message GetRawDataRequest {
@@ -52,6 +57,7 @@ message GetRawDataRequest {
 
 message GetRawDataResponse {
   string Data = 1;
+  string Comment = 2;
 }
 
 message GetLoginWithPasswordRequest {
@@ -61,6 +67,7 @@ message GetLoginWithPasswordRequest {
 message GetLoginWithPasswordResponse {
   string Login = 1;
   string Password = 2;
+  string Comment = 3;
 }
 
 message GetBinaryDataRequest {
@@ -69,6 +76,7 @@ message GetBinaryDataRequest {
 
 message GetBinaryDataResponse {
   bytes Data = 1;
+  string Comment = 2;
 }
 
 message GetCardDataRequest {
@@ -80,6 +88,8 @@ message GetCardDataResponse {
   string Month = 2;
   string Year = 3;
   string CardHolder = 4;
+  string Cvv = 5;
+  string Comment = 6;
 }
 
 message GetAllSavedDataNamesRequest {

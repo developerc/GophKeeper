@@ -22,7 +22,8 @@ const (
 		"name varchar(45) unique not null, " +
 		"data_type int2 not null, " +
 		"data bytea, " +
-		"user_id varchar(45) references public.users (id)" +
+		"user_id varchar(45) references public.users (id), " +
+		"comment text" +
 		")"
 )
 
