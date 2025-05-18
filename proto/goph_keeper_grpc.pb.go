@@ -38,6 +38,7 @@ const (
 	GrpcService_UpdLoginWithPassword_FullMethodName  = "/server.GrpcService/UpdLoginWithPassword"
 	GrpcService_UpdBinaryData_FullMethodName         = "/server.GrpcService/UpdBinaryData"
 	GrpcService_UpdCardData_FullMethodName           = "/server.GrpcService/UpdCardData"
+	GrpcService_CheckConnectCall_FullMethodName      = "/server.GrpcService/CheckConnectCall"
 )
 
 // GrpcServiceClient is the client API for GrpcService service.
@@ -63,6 +64,7 @@ type GrpcServiceClient interface {
 	UpdLoginWithPassword(ctx context.Context, in *SaveLoginWithPasswordRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 	UpdBinaryData(ctx context.Context, in *SaveBinaryDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 	UpdCardData(ctx context.Context, in *SaveCardDataRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
+	CheckConnectCall(ctx context.Context, in *CheckConnectRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 }
 
 type grpcServiceClient struct {
@@ -263,6 +265,16 @@ func (c *grpcServiceClient) UpdCardData(ctx context.Context, in *SaveCardDataReq
 	return out, nil
 }
 
+func (c *grpcServiceClient) CheckConnectCall(ctx context.Context, in *CheckConnectRequest, opts ...grpc.CallOption) (*ErrorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ErrorResponse)
+	err := c.cc.Invoke(ctx, GrpcService_CheckConnectCall_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GrpcServiceServer is the server API for GrpcService service.
 // All implementations must embed UnimplementedGrpcServiceServer
 // for forward compatibility.
@@ -286,6 +298,7 @@ type GrpcServiceServer interface {
 	UpdLoginWithPassword(context.Context, *SaveLoginWithPasswordRequest) (*ErrorResponse, error)
 	UpdBinaryData(context.Context, *SaveBinaryDataRequest) (*ErrorResponse, error)
 	UpdCardData(context.Context, *SaveCardDataRequest) (*ErrorResponse, error)
+	CheckConnectCall(context.Context, *CheckConnectRequest) (*ErrorResponse, error)
 	mustEmbedUnimplementedGrpcServiceServer()
 }
 
@@ -352,6 +365,9 @@ func (UnimplementedGrpcServiceServer) UpdBinaryData(context.Context, *SaveBinary
 }
 func (UnimplementedGrpcServiceServer) UpdCardData(context.Context, *SaveCardDataRequest) (*ErrorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdCardData not implemented")
+}
+func (UnimplementedGrpcServiceServer) CheckConnectCall(context.Context, *CheckConnectRequest) (*ErrorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckConnectCall not implemented")
 }
 func (UnimplementedGrpcServiceServer) mustEmbedUnimplementedGrpcServiceServer() {}
 func (UnimplementedGrpcServiceServer) testEmbeddedByValue()                     {}
@@ -716,6 +732,24 @@ func _GrpcService_UpdCardData_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GrpcService_CheckConnectCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckConnectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GrpcServiceServer).CheckConnectCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GrpcService_CheckConnectCall_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GrpcServiceServer).CheckConnectCall(ctx, req.(*CheckConnectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GrpcService_ServiceDesc is the grpc.ServiceDesc for GrpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -798,6 +832,10 @@ var GrpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdCardData",
 			Handler:    _GrpcService_UpdCardData_Handler,
+		},
+		{
+			MethodName: "CheckConnectCall",
+			Handler:    _GrpcService_CheckConnectCall_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

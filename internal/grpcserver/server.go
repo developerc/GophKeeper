@@ -383,6 +383,10 @@ func (s *Server) UpdCardData(ctx context.Context, in *pb.SaveCardDataRequest) (*
 	return &pb.ErrorResponse{Error: "no errors"}, nil
 }
 
+func (s *Server) CheckConnectCall(ctx context.Context, in *pb.CheckConnectRequest) (*pb.ErrorResponse, error) {
+	return &pb.ErrorResponse{Error: "no errors"}, nil
+}
+
 // NewGRPCserver конструктор GRPC сервера
 func NewGRPCserver(ctx context.Context, settings *config.ServerSettings, userService userservice.UserService, jwtManager *security.JWTManager, storageService dataservice.StorageService, db *sql.DB) {
 	lis, err := net.Listen("tcp", settings.Host) // будем ждать запросы по этому адресу

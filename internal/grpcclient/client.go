@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/developerc/GophKeeper/internal/config"
+	"github.com/developerc/GophKeeper/internal/grpcclient/localdb"
 	pb "github.com/developerc/GophKeeper/proto"
 	"github.com/golang-jwt/jwt"
 	"google.golang.org/grpc"
@@ -28,6 +29,8 @@ type ClientManager struct {
 	ClientJWTManager *JWTManager
 	GrpcClient       pb.GrpcServiceClient
 }
+
+var localMode bool
 
 func NewClientManager() (*ClientManager, error) {
 	clientManager := ClientManager{}
@@ -72,10 +75,12 @@ const menu = "" +
 	"16 Обновление сырых данных\n" +
 	"17 Обновление данных логин, пароль\n" +
 	"18 Обновление бинарных данных\n" +
-	"19 Обновление данных карты\n"
+	"19 Обновление данных карты\n" +
+	"20 Проверка соединения с gRPC сервером\n"
 
 // main запускает клиента gRPC
 func main() {
+
 	log.SetFlags(0)
 	BuildVersion := strings.TrimSpace(buildVersion)
 	if len(BuildVersion) > 0 {
@@ -96,12 +101,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// создадим клиент grpc //с перехватчиком
+	err = localdb.InitDB("raw_data.db", cm.ServerSettings.Key)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// создадим клиент grpc
 	conn, err := grpc.NewClient(cm.ServerSettings.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Println("could not connect to grpc server: ", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 	defer conn.Close()
 	cm.GrpcClient = pb.NewGrpcServiceClient(conn)
@@ -152,6 +159,18 @@ func main() {
 			UpdBinaryData(cm)
 		case 19:
 			UpdCardData(cm)
+		case 20:
+			errorResponse, err := cm.CheckConnectCall()
+			if err != nil {
+				fmt.Println(err)
+				fmt.Println("Проверка соединения неуспешна. Работа только в локальном режиме.")
+				localMode = true
+				//fmt.Println(localMode)
+			} else {
+				fmt.Println("Проверка соединения успешна: ", errorResponse.Error, "Работа в штатном режиме.")
+				localMode = false
+				//fmt.Println(localMode)
+			}
 		}
 	}
 
@@ -213,10 +232,14 @@ func LoginUser(cm *ClientManager) {
 
 // SaveRawData сохранения произвольную текстовую информацию для авторизованного пользователя
 func SaveRawData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var data string
 	var comment string
-
 	fmt.Print("Добавляем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемую строку: ")
@@ -240,6 +263,15 @@ func GetRawData(cm *ClientManager) {
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if localMode {
+		data, comment, err := localdb.GetRawData(ctx, name)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("Получены из локальной БД сырые данные %s, комментарий %s\n", data, comment)
+		return
+	}
 	getRawDataResponse, err := cm.GetRawData(ctx, name)
 	if err != nil {
 		log.Println(err)
@@ -250,6 +282,11 @@ func GetRawData(cm *ClientManager) {
 
 // SaveLoginWithPassword сохраняет логин и пароль для авторизованного пользователя
 func SaveLoginWithPassword(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var login string
 	var password string
@@ -279,6 +316,15 @@ func GetLoginWithPassword(cm *ClientManager) {
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if localMode {
+		login, password, comment, err := localdb.GetLoginWithPassword(ctx, name)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("Получены из локальной базы логин %s, пароль %s, комментарий %s\n", login, password, comment)
+		return
+	}
 	getLoginWithPasswordResponse, err := cm.GetLoginWithPassword(ctx, name)
 	if err != nil {
 		log.Println(err)
@@ -289,6 +335,11 @@ func GetLoginWithPassword(cm *ClientManager) {
 
 // SaveBinaryData сохранение произвольных бинарных данных для авторизованного пользователя
 func SaveBinaryData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var filePath string
 	var myBinary []byte
@@ -323,6 +374,15 @@ func GetBinaryData(cm *ClientManager) {
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if localMode {
+		data, comment, err := localdb.GetBinaryData(ctx, name)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("Получены из локальной БД бинарные данные %s, комментарий %s\n", data, comment)
+		return
+	}
 	getBinaryDataResponse, err := cm.GetBinaryData(ctx, name)
 	if err != nil {
 		log.Println(err)
@@ -333,6 +393,11 @@ func GetBinaryData(cm *ClientManager) {
 
 // SaveCardData сохранение данных банковской карты для авторизованного пользователя
 func SaveCardData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var number string
 	var month string
@@ -373,6 +438,15 @@ func GetCardData(cm *ClientManager) {
 	fmt.Scan(&name)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if localMode {
+		number, month, year, cardHolder, cvv, comment, err := localdb.GetCardData(ctx, name)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("Получены из локальной базы данные карты: номер %s, месяц %s, год %s, держатель карты %s, CVV %s, комментарий %s\n", number, month, year, cardHolder, cvv, comment)
+		return
+	}
 	getCardDataResponse, err := cm.GetCardData(ctx, name)
 	if err != nil {
 		log.Println(err)
@@ -398,6 +472,11 @@ func GetAllSavedDataNames(cm *ClientManager) {
 
 // DelRawData удаляет сырые данные
 func DelRawData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	fmt.Print("Удаляем сырые данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
@@ -413,6 +492,11 @@ func DelRawData(cm *ClientManager) {
 
 // DelLoginWithPassword удаляет данные логин, пароль
 func DelLoginWithPassword(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	fmt.Print("Удаляем данные логин, пароль. Введите имя в хранилище: ")
 	fmt.Scan(&name)
@@ -428,6 +512,11 @@ func DelLoginWithPassword(cm *ClientManager) {
 
 // DelBinaryData удаляет бинарные данные
 func DelBinaryData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	fmt.Print("Удаляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
@@ -443,6 +532,11 @@ func DelBinaryData(cm *ClientManager) {
 
 // DelCardData удаляет данные карты
 func DelCardData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	fmt.Print("Удаляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
@@ -458,6 +552,11 @@ func DelCardData(cm *ClientManager) {
 
 // UpdRawData обновляет произвольную текстовую информацию для авторизованного пользователя
 func UpdRawData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var data string
 	var comment string
@@ -480,6 +579,11 @@ func UpdRawData(cm *ClientManager) {
 
 // UpdLoginWithPassword обновляет логин и пароль для авторизованного пользователя
 func UpdLoginWithPassword(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var login string
 	var password string
@@ -504,6 +608,11 @@ func UpdLoginWithPassword(cm *ClientManager) {
 
 // SaveBinaryData обновляет произвольных бинарных данных для авторизованного пользователя
 func UpdBinaryData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var myBinaryStr string
 	var myBinary []byte
@@ -527,6 +636,11 @@ func UpdBinaryData(cm *ClientManager) {
 
 // UpdCardData обновляет данных банковской карты для авторизованного пользователя
 func UpdCardData(cm *ClientManager) {
+	if localMode {
+		fmt.Println("Удаленный сервер недоступен. Возможно только чтение из локальной БД.")
+		return
+	}
+
 	var name string
 	var number string
 	var month string
@@ -625,6 +739,11 @@ func (cm *ClientManager) SaveRawData(ctx context.Context, name, data, comment st
 	if err != nil {
 		return nil, err
 	}
+	err = localdb.SaveRawData(ctx, name, data, comment, cm.UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	return errorResponse, nil
 }
 
@@ -652,6 +771,11 @@ func (cm *ClientManager) SaveLoginWithPassword(ctx context.Context, name, lgn, p
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.SaveLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw, Comment: comment})
+	if err != nil {
+		return nil, err
+	}
+
+	err = localdb.SaveLoginWithPassword(ctx, name, lgn, psw, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -686,6 +810,10 @@ func (cm *ClientManager) SaveBinaryData(ctx context.Context, name string, binDat
 	if err != nil {
 		return nil, err
 	}
+	err = localdb.SaveBinaryData(ctx, name, binData, comment, cm.UserID)
+	if err != nil {
+		return nil, err
+	}
 	return errorResponse, nil
 }
 
@@ -713,6 +841,10 @@ func (cm *ClientManager) SaveCardData(ctx context.Context, name, number, month, 
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.SaveCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder, Cvv: cvv, Comment: comment})
+	if err != nil {
+		return nil, err
+	}
+	err = localdb.SaveCardData(ctx, name, number, month, year, cardHolder, cvv, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -868,3 +1000,56 @@ func (cm *ClientManager) UpdCardData(ctx context.Context, name, number, month, y
 	}
 	return errorResponse, nil
 }
+
+func (cm *ClientManager) CheckConnectCall() (*pb.ErrorResponse, error) {
+	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
+	if err != nil {
+		return nil, err
+	}
+	md := metadata.New(map[string]string{"authorization": jwtToken})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	errorResponse, err := cm.GrpcClient.CheckConnectCall(ctx, &pb.CheckConnectRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return errorResponse, nil
+}
+
+/*func checkConnection(conn *grpc.ClientConn) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	state := conn.GetState()
+	switch state {
+	case connectivity.Idle, connectivity.Connecting:
+		// Connection is being established
+		fmt.Println(state)
+		return conn.WaitForStateChange(ctx, state)
+	case connectivity.Ready:
+		// Connection is active
+		fmt.Println(state)
+		return true
+	case connectivity.TransientFailure, connectivity.Shutdown:
+		// Connection failed or is shutting down
+		fmt.Println(state)
+		return false
+	default:
+		return false
+	}
+}
+
+func checkHealth(conn *grpc.ClientConn) bool {
+	client := grpc_health_v1.NewHealthClient(conn)
+	resp, err := client.Check(context.Background(), &grpc_health_v1.HealthCheckRequest{
+		Service: "", // empty for overall server health
+	})
+
+	if err != nil {
+		log.Printf("Health check failed: %v", err)
+		return false
+	}
+	fmt.Println(resp.Status)
+	return resp.Status == grpc_health_v1.HealthCheckResponse_SERVING
+}*/

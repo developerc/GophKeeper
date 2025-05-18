@@ -103,6 +103,9 @@ message DelRequest {
   string Name = 1;
 }
 
+message CheckConnectRequest {
+}
+
 service GrpcService {
   rpc CreateUser(UserRegisterRequest) returns (AuthorizedResponse);
   rpc LoginUser(UserAuthorizedRequest) returns (AuthorizedResponse);
@@ -128,4 +131,6 @@ service GrpcService {
   rpc UpdLoginWithPassword(SaveLoginWithPasswordRequest) returns (ErrorResponse);
   rpc UpdBinaryData(SaveBinaryDataRequest) returns (ErrorResponse);
   rpc UpdCardData(SaveCardDataRequest) returns (ErrorResponse);
+
+  rpc CheckConnectCall(CheckConnectRequest) returns (ErrorResponse);
 }
