@@ -19,19 +19,25 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// ClientManager структура менеджера клиента
 type ClientManager struct {
-	ServerSettings   *config.ServerSettings
-	UserClaims       *UserClaims
-	Err              error
-	Lgn              string
-	Psw              string
-	UserID           string
-	ClientJWTManager *JWTManager
-	GrpcClient       pb.GrpcServiceClient
+	ServerSettings     *config.ServerSettings
+	UserClaims         *UserClaims
+	Err                error
+	Lgn                string
+	Psw                string
+	UserID             string
+	ClientJWTManager   *JWTManager
+	GrpcClient         pb.GrpcServiceClient
+	LocalSQLiteManager localdb.LocalSQLiteManager
 }
 
+// localMode переменная контролирует режим работы клиента
+// true локальный - при потере связи с сервером
+// false штатный - при установленной связи с сервером
 var localMode bool
 
+// NewClientManager конструктор менеджера клиента
 func NewClientManager() (*ClientManager, error) {
 	clientManager := ClientManager{}
 	ss, err := config.NewServerSettings()
@@ -44,6 +50,11 @@ func NewClientManager() (*ClientManager, error) {
 		return nil, err
 	}
 	clientManager.ClientJWTManager = cJWTm
+
+	clientManager.LocalSQLiteManager, err = localdb.NewLocalSQLiteManager("raw_data.db", ss.Key)
+	if err != nil {
+		return nil, err
+	}
 	return &clientManager, nil
 }
 
@@ -101,10 +112,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = localdb.InitDB("raw_data.db", cm.ServerSettings.Key)
+	/*err = localdb.InitDB("raw_data.db", cm.ServerSettings.Key)
 	if err != nil {
 		log.Fatal(err)
-	}
+	}*/
 	// создадим клиент grpc
 	conn, err := grpc.NewClient(cm.ServerSettings.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -165,11 +176,9 @@ func main() {
 				fmt.Println(err)
 				fmt.Println("Проверка соединения неуспешна. Работа только в локальном режиме.")
 				localMode = true
-				//fmt.Println(localMode)
 			} else {
 				fmt.Println("Проверка соединения успешна: ", errorResponse.Error, "Работа в штатном режиме.")
 				localMode = false
-				//fmt.Println(localMode)
 			}
 		}
 	}
@@ -264,7 +273,7 @@ func GetRawData(cm *ClientManager) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if localMode {
-		data, comment, err := localdb.GetRawData(ctx, name)
+		data, comment, err := cm.LocalSQLiteManager.GetRawData(ctx, name)
 		if err != nil {
 			log.Println(err)
 			return
@@ -317,7 +326,7 @@ func GetLoginWithPassword(cm *ClientManager) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if localMode {
-		login, password, comment, err := localdb.GetLoginWithPassword(ctx, name)
+		login, password, comment, err := cm.LocalSQLiteManager.GetLoginWithPassword(ctx, name)
 		if err != nil {
 			log.Println(err)
 			return
@@ -375,7 +384,7 @@ func GetBinaryData(cm *ClientManager) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if localMode {
-		data, comment, err := localdb.GetBinaryData(ctx, name)
+		data, comment, err := cm.LocalSQLiteManager.GetBinaryData(ctx, name)
 		if err != nil {
 			log.Println(err)
 			return
@@ -439,7 +448,7 @@ func GetCardData(cm *ClientManager) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if localMode {
-		number, month, year, cardHolder, cvv, comment, err := localdb.GetCardData(ctx, name)
+		number, month, year, cardHolder, cvv, comment, err := cm.LocalSQLiteManager.GetCardData(ctx, name)
 		if err != nil {
 			log.Println(err)
 			return
@@ -461,7 +470,7 @@ func GetAllSavedDataNames(cm *ClientManager) {
 	defer cancel()
 	defer cancel()
 	if localMode {
-		names, err := localdb.GetAllSavedDataNames(ctx)
+		names, err := cm.LocalSQLiteManager.GetAllSavedDataNames(ctx)
 		if err != nil {
 			log.Println(err)
 			return
@@ -573,7 +582,6 @@ func UpdRawData(cm *ClientManager) {
 	var name string
 	var data string
 	var comment string
-
 	fmt.Print("Обновляем сырые данные, строка. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите сохраняемую строку: ")
@@ -639,7 +647,7 @@ func UpdBinaryData(cm *ClientManager) {
 
 	myBinary, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 
@@ -667,7 +675,6 @@ func UpdCardData(cm *ClientManager) {
 	var cardHolder string
 	var cvv string
 	var comment string
-
 	fmt.Print("Обновляем данные карты. Введите имя в хранилище: ")
 	fmt.Scan(&name)
 	fmt.Print("Введите номер карты: ")
@@ -703,7 +710,7 @@ func getLoginPassword(tokenString, key string) (*UserClaims, error) {
 		return nil, err
 	}
 	if !token.Valid {
-		fmt.Println("Token is not valid")
+		log.Println("Token is not valid")
 		return nil, err
 	}
 
@@ -758,7 +765,7 @@ func (cm *ClientManager) SaveRawData(ctx context.Context, name, data, comment st
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.SaveRawData(ctx, name, data, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.SaveRawData(ctx, name, data, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -793,8 +800,7 @@ func (cm *ClientManager) SaveLoginWithPassword(ctx context.Context, name, lgn, p
 	if err != nil {
 		return nil, err
 	}
-
-	err = localdb.SaveLoginWithPassword(ctx, name, lgn, psw, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.SaveLoginWithPassword(ctx, name, lgn, psw, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -818,7 +824,6 @@ func (cm *ClientManager) GetLoginWithPassword(ctx context.Context, name string) 
 
 // SaveBinaryData метод сохранения произвольных бинарных данных для авторизованного пользователя
 func (cm *ClientManager) SaveBinaryData(ctx context.Context, name string, binData []byte, comment string) (*pb.ErrorResponse, error) {
-	//return nil, nil
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
 		return nil, err
@@ -829,7 +834,7 @@ func (cm *ClientManager) SaveBinaryData(ctx context.Context, name string, binDat
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.SaveBinaryData(ctx, name, binData, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.SaveBinaryData(ctx, name, binData, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -863,7 +868,7 @@ func (cm *ClientManager) SaveCardData(ctx context.Context, name, number, month, 
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.SaveCardData(ctx, name, number, month, year, cardHolder, cvv, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.SaveCardData(ctx, name, number, month, year, cardHolder, cvv, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -912,7 +917,7 @@ func (cm *ClientManager) DelRawData(ctx context.Context, name string) (*pb.Error
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.DelRawData(ctx, name)
+	err = cm.LocalSQLiteManager.DelRawData(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -931,7 +936,7 @@ func (cm *ClientManager) DelLoginWithPassword(ctx context.Context, name string) 
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.DelLoginWithPassword(ctx, name)
+	err = cm.LocalSQLiteManager.DelLoginWithPassword(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -950,7 +955,7 @@ func (cm *ClientManager) DelBinaryData(ctx context.Context, name string) (*pb.Er
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.DelBinaryData(ctx, name)
+	err = cm.LocalSQLiteManager.DelBinaryData(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -969,7 +974,7 @@ func (cm *ClientManager) DelCardData(ctx context.Context, name string) (*pb.Erro
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.DelCardData(ctx, name)
+	err = cm.LocalSQLiteManager.DelCardData(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -988,7 +993,7 @@ func (cm *ClientManager) UpdRawData(ctx context.Context, name, data, comment str
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.UpdRawData(ctx, name, data, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.UpdRawData(ctx, name, data, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -1007,7 +1012,7 @@ func (cm *ClientManager) UpdLoginWithPassword(ctx context.Context, name, lgn, ps
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.UpdLoginWithPassword(ctx, name, lgn, psw, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.UpdLoginWithPassword(ctx, name, lgn, psw, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -1026,7 +1031,7 @@ func (cm *ClientManager) UpdBinaryData(ctx context.Context, name string, binData
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.UpdBinaryData(ctx, name, binData, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.UpdBinaryData(ctx, name, binData, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -1045,13 +1050,14 @@ func (cm *ClientManager) UpdCardData(ctx context.Context, name, number, month, y
 	if err != nil {
 		return nil, err
 	}
-	err = localdb.UpdCardData(ctx, name, number, month, year, cardHolder, cvv, comment, cm.UserID)
+	err = cm.LocalSQLiteManager.UpdCardData(ctx, name, number, month, year, cardHolder, cvv, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
 	return errorResponse, nil
 }
 
+// CheckConnectCall проверяет связь с сервером
 func (cm *ClientManager) CheckConnectCall() (*pb.ErrorResponse, error) {
 	jwtToken, err := cm.ClientJWTManager.GenerateJWT(cm.UserID, cm.Lgn)
 	if err != nil {
@@ -1067,40 +1073,3 @@ func (cm *ClientManager) CheckConnectCall() (*pb.ErrorResponse, error) {
 	}
 	return errorResponse, nil
 }
-
-/*func checkConnection(conn *grpc.ClientConn) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	state := conn.GetState()
-	switch state {
-	case connectivity.Idle, connectivity.Connecting:
-		// Connection is being established
-		fmt.Println(state)
-		return conn.WaitForStateChange(ctx, state)
-	case connectivity.Ready:
-		// Connection is active
-		fmt.Println(state)
-		return true
-	case connectivity.TransientFailure, connectivity.Shutdown:
-		// Connection failed or is shutting down
-		fmt.Println(state)
-		return false
-	default:
-		return false
-	}
-}
-
-func checkHealth(conn *grpc.ClientConn) bool {
-	client := grpc_health_v1.NewHealthClient(conn)
-	resp, err := client.Check(context.Background(), &grpc_health_v1.HealthCheckRequest{
-		Service: "", // empty for overall server health
-	})
-
-	if err != nil {
-		log.Printf("Health check failed: %v", err)
-		return false
-	}
-	fmt.Println(resp.Status)
-	return resp.Status == grpc_health_v1.HealthCheckResponse_SERVING
-}*/
