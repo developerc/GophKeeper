@@ -459,6 +459,19 @@ func GetCardData(cm *ClientManager) {
 func GetAllSavedDataNames(cm *ClientManager) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	defer cancel()
+	if localMode {
+		names, err := localdb.GetAllSavedDataNames(ctx)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println("Получены из локальной БД names:")
+		for _, name := range names {
+			fmt.Println(name)
+		}
+		return
+	}
 	getAllSavedDataNamesResponse, err := cm.GetAllSavedDataNames(ctx)
 	if err != nil {
 		log.Println(err)
@@ -614,16 +627,22 @@ func UpdBinaryData(cm *ClientManager) {
 	}
 
 	var name string
-	var myBinaryStr string
+	var filePath string
 	var myBinary []byte
 	var comment string
 	fmt.Print("Обновляем бинарные данные. Введите имя в хранилище: ")
 	fmt.Scan(&name)
-	fmt.Print("Введите сохраняемые бинарные данные как строку: ")
-	fmt.Scan(&myBinaryStr)
+	fmt.Print("Введите полный путь к файлу: ")
+	fmt.Scan(&filePath)
 	fmt.Print("Введите комментарий: ")
 	fmt.Scan(&comment)
-	myBinary = []byte(myBinaryStr)
+
+	myBinary, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	errorResponse, err := cm.UpdBinaryData(ctx, name, myBinary, comment)
@@ -893,6 +912,10 @@ func (cm *ClientManager) DelRawData(ctx context.Context, name string) (*pb.Error
 	if err != nil {
 		return nil, err
 	}
+	err = localdb.DelRawData(ctx, name)
+	if err != nil {
+		return nil, err
+	}
 	return errorResponse, nil
 }
 
@@ -905,6 +928,10 @@ func (cm *ClientManager) DelLoginWithPassword(ctx context.Context, name string) 
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.DelLoginWithPassword(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	err = localdb.DelLoginWithPassword(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -923,6 +950,10 @@ func (cm *ClientManager) DelBinaryData(ctx context.Context, name string) (*pb.Er
 	if err != nil {
 		return nil, err
 	}
+	err = localdb.DelBinaryData(ctx, name)
+	if err != nil {
+		return nil, err
+	}
 	return errorResponse, nil
 }
 
@@ -935,6 +966,10 @@ func (cm *ClientManager) DelCardData(ctx context.Context, name string) (*pb.Erro
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.DelCardData(ctx, &pb.DelRequest{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	err = localdb.DelCardData(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -953,6 +988,10 @@ func (cm *ClientManager) UpdRawData(ctx context.Context, name, data, comment str
 	if err != nil {
 		return nil, err
 	}
+	err = localdb.UpdRawData(ctx, name, data, comment, cm.UserID)
+	if err != nil {
+		return nil, err
+	}
 	return errorResponse, nil
 }
 
@@ -965,6 +1004,10 @@ func (cm *ClientManager) UpdLoginWithPassword(ctx context.Context, name, lgn, ps
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.UpdLoginWithPassword(ctx, &pb.SaveLoginWithPasswordRequest{Name: name, Login: lgn, Password: psw, Comment: comment})
+	if err != nil {
+		return nil, err
+	}
+	err = localdb.UpdLoginWithPassword(ctx, name, lgn, psw, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -983,6 +1026,10 @@ func (cm *ClientManager) UpdBinaryData(ctx context.Context, name string, binData
 	if err != nil {
 		return nil, err
 	}
+	err = localdb.UpdBinaryData(ctx, name, binData, comment, cm.UserID)
+	if err != nil {
+		return nil, err
+	}
 	return errorResponse, nil
 }
 
@@ -995,6 +1042,10 @@ func (cm *ClientManager) UpdCardData(ctx context.Context, name, number, month, y
 	md := metadata.New(map[string]string{"authorization": jwtToken})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	errorResponse, err := cm.GrpcClient.UpdCardData(ctx, &pb.SaveCardDataRequest{Name: name, Number: number, Month: month, Year: year, CardHolder: cardHolder, Cvv: cvv, Comment: comment})
+	if err != nil {
+		return nil, err
+	}
+	err = localdb.UpdCardData(ctx, name, number, month, year, cardHolder, cvv, comment, cm.UserID)
 	if err != nil {
 		return nil, err
 	}

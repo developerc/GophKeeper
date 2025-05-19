@@ -293,3 +293,206 @@ func GetCardData(ctx context.Context, name string) (string, string, string, stri
 
 	return card.Number, card.Month, card.Year, card.CardHolder, card.Cvv, comment, nil
 }
+
+func GetAllSavedDataNames(ctx context.Context) ([]string, error) {
+	fmt.Println("from local_db GetCardData")
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return nil, err
+	}
+	defer DB.Close()
+	rows, err := DB.QueryContext(ctx, "SELECT name FROM raw_data")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	names := make([]string, 0)
+	for rows.Next() {
+		var name string
+		err = rows.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return names, nil
+}
+
+func DelRawData(ctx context.Context, name string) error {
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+
+	_, err = DB.ExecContext(ctx, "DELETE FROM raw_data WHERE name=?", name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func DelLoginWithPassword(ctx context.Context, name string) error {
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+
+	_, err = DB.ExecContext(ctx, "DELETE FROM raw_data WHERE name=?", name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func DelBinaryData(ctx context.Context, name string) error {
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+
+	_, err = DB.ExecContext(ctx, "DELETE FROM raw_data WHERE name=?", name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func DelCardData(ctx context.Context, name string) error {
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+
+	_, err = DB.ExecContext(ctx, "DELETE FROM raw_data WHERE name=?", name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func UpdRawData(ctx context.Context, name, data, comment, userID string) error {
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+	encriptData, err := cipherManager.Encrypt([]byte(data))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	_, err = DB.ExecContext(ctx, "UPDATE raw_data SET data=?, user_id=?, comment=? WHERE name=?", encriptData, userID, comment, name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func UpdLoginWithPassword(ctx context.Context, name, lgn, psw, comment, userID string) error {
+	cred := CredentialsDTO{
+		Login:    lgn,
+		Password: psw,
+	}
+	marshalledCred, err := json.Marshal(cred)
+	if err != nil {
+		return err
+	}
+
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+
+	encriptData, err := cipherManager.Encrypt(marshalledCred)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	_, err = DB.ExecContext(ctx, "UPDATE raw_data SET data=?, user_id=?, comment=? WHERE name=?", encriptData, userID, comment, name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func UpdBinaryData(ctx context.Context, name string, binData []byte, comment, userID string) error {
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+	encriptData, err := cipherManager.Encrypt(binData)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	_, err = DB.ExecContext(ctx, "UPDATE raw_data SET data=?, user_id=?, comment=? WHERE name=?", encriptData, userID, comment, name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func UpdCardData(ctx context.Context, name, number, month, year, cardHolder, cvv, comment, userID string) error {
+	card := CardDataDTO{
+		Number:     number,
+		Month:      month,
+		Year:       year,
+		CardHolder: cardHolder,
+		Cvv:        cvv,
+	}
+
+	marshalledCard, err := json.Marshal(card)
+	if err != nil {
+		return err
+	}
+
+	DB, err := sql.Open("sqlite", DBPath)
+	if err != nil {
+		return err
+	}
+	defer DB.Close()
+
+	encriptData, err := cipherManager.Encrypt(marshalledCard)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	_, err = DB.ExecContext(ctx, "UPDATE raw_data SET data=?, user_id=?, comment=? WHERE name=?", encriptData, userID, comment, name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
